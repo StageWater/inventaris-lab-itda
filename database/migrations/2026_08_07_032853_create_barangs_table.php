@@ -12,36 +12,34 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('barangs', function (Blueprint $table) {
-    $table->id();
-    $table->string('kode_barang')->unique();
-    $table->string('nama_barang');
+            $table->id();
+            $table->string('kode_barang')->unique();
+            $table->string('nama_barang');
+            
+            // Kita sederhanakan menjadi string/teks biasa dulu
+            $table->string('kategori'); 
+            
+            // Relasi ke tabel ruangan yang sudah kita buat tadi
+            $table->foreignId('ruangan_id')->constrained('ruangans')->onDelete('cascade');
 
-    $table->foreignId('ruangan_id')->constrained('ruangans');
-    $table->foreignId('kategori_barang_id')->constrained('kategori_barangs');
-    $table->foreignId('satuan_id')->constrained('satuans');
+            // Kita biarkan enum karena ini cukup aman dan bagus
+            $table->enum('kondisi', [
+                'Baik',
+                'Rusak Ringan',
+                'Rusak Berat'
+            ])->default('Baik');
 
-    $table->string('serial_number')->nullable()->unique();
+            $table->enum('status', [
+                'Tersedia',
+                'Maintenance',
+                'Dipinjam'
+            ])->default('Tersedia');
 
-    $table->enum('kondisi', [
-        'Baik',
-        'Rusak Ringan',
-        'Rusak Berat'
-    ]);
+            $table->string('qr_code')->nullable(); // Kita siapkan untuk fitur QR nanti
+            $table->text('keterangan')->nullable();
 
-    $table->enum('status', [
-        'Tersedia',
-        'Maintenance',
-        'Dipinjam'
-    ])->default('Tersedia');
-
-    $table->date('tanggal_pengadaan')->nullable();
-
-    $table->string('qr_code')->nullable();
-
-    $table->text('keterangan')->nullable();
-
-    $table->timestamps();
-});
+            $table->timestamps();
+        });
     }
 
     /**
