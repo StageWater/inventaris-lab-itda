@@ -2,73 +2,159 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Data Peminjaman - ITD Adisutjipto</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 40px; background-color: #f4f7f6; color: #333; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { color: #003366; text-transform: uppercase; }
-        .btn-tambah { background-color: #00509E; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; display: inline-block; margin-bottom: 20px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        th { background-color: #003366; color: white; padding: 15px; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #ddd; }
-        .status-dipinjam { color: #e74c3c; font-weight: bold; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaksi Peminjaman | SIMALAB ITDA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
+    </script>
 </head>
-<body>
-    <div class="header">
-        <h1>Data Transaksi Peminjaman</h1>
-    </div>
+<body class="bg-slate-50 font-sans text-slate-900 antialiased flex h-screen overflow-hidden">
 
-    <a href="{{ route('dashboard') }}" style="margin-right: 15px; text-decoration: none; color: #00509E; font-weight: bold;">⬅ Kembali ke Dashboard</a><br><br>
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col z-20">
+        <div class="h-20 flex items-center px-5 border-b border-slate-200 bg-blue-950">
+            <div class="w-11 h-11 bg-white rounded-full flex items-center justify-center p-1 mr-3 shadow-md shrink-0">
+                <img src="{{ asset('logo-itda.png') }}" alt="Logo ITDA" class="w-full h-full object-contain" onerror="this.style.display='none'; document.getElementById('ikon-cadangan').style.display='block';">
+                <i id="ikon-cadangan" data-lucide="plane" class="text-blue-800 w-6 h-6 hidden"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-bold text-lg tracking-tight text-white leading-tight">SIMALAB<span class="text-blue-400 font-normal">.</span></span>
+                <span class="text-[9px] text-blue-200 uppercase tracking-widest mt-0.5">Dirgantara Adisutjipto</span>
+            </div>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+            <a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md transition-colors">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3 text-slate-400"></i> Dashboard
+            </a>
+            <a href="{{ route('barang.index') }}" class="flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md transition-colors">
+                <i data-lucide="box" class="w-4 h-4 mr-3 text-slate-400"></i> Data Barang
+            </a>
+            <!-- Menu Aktif: Transaksi -->
+            <a href="#" class="flex items-center px-3 py-2 text-sm font-semibold bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md">
+                <i data-lucide="arrow-right-left" class="w-4 h-4 mr-3 text-blue-700"></i> Transaksi
+            </a>
+        </nav>
 
-    <a href="{{ route('peminjaman.create') }}" class="btn-tambah">+ Catat Peminjaman Baru</a>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama Peminjam</th>
-                <th>Barang yang Dipinjam</th>
-                <th>Tanggal Pinjam</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($peminjaman as $index => $item)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td><strong>{{ $item->nama_peminjam }}</strong></td>
-                    <td>{{ $item->barang->nama_barang ?? 'Barang Dihapus' }}</td>
-                    <td>{{ $item->tanggal_pinjam }}</td>
-                    <td class="status-dipinjam">{{ $item->status_pinjam }}</td>
-                    
-                    <!-- KOLOM AKSI (TOMBOL KEMBALIKAN & HAPUS) -->
-                    <td>
-                        @if($item->status_pinjam == 'Dipinjam')
-                            <form action="{{ route('peminjaman.kembalikan', $item->id) }}" method="POST" style="display:inline;">
-                                @csrf
-                                @method('PUT')
-                                <button type="submit" style="background-color: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-right: 5px;" onclick="return confirm('Konfirmasi pengembalian barang ini?')">Kembalikan</button>
-                            </form>
-                        @else
-                            <span style="color: #777; font-style: italic; margin-right: 10px;">Dikembalikan</span>
-                        @endif
+        <!-- Profil & Logout -->
+        <div class="p-4 border-t border-slate-200 bg-slate-50/50">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                    {{ substr(Auth::user()->name, 0, 1) }}
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-semibold text-slate-800">{{ Auth::user()->name }}</p>
+                    <p class="text-[11px] text-slate-500 font-medium">{{ Auth::user()->ruangan_id == null ? 'Super Admin' : 'Admin Ruang ' . Auth::user()->ruangan_id }}</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-md transition-colors border border-rose-100">
+                    <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Keluar Sistem
+                </button>
+            </form>
+        </div>
+    </aside>
 
-                        <!-- INI DIA TOMBOL HAPUSNYA -->
-                        <form action="{{ route('peminjaman.destroy', $item->id) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;" onclick="return confirm('Yakin ingin menghapus riwayat transaksi ini?')">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 30px;">Belum ada transaksi peminjaman.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <!-- KONTEN UTAMA -->
+    <main class="flex-1 overflow-y-auto">
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
+            <h1 class="text-lg font-semibold text-slate-800">Manajemen Transaksi</h1>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto space-y-6">
+            
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-950">Riwayat Peminjaman</h2>
+                    <p class="text-sm text-slate-500 mt-1">Catat dan pantau sirkulasi peminjaman aset laboratorium.</p>
+                </div>
+                <!-- Tombol Pinjam Baru -->
+                <a href="{{ route('peminjaman.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5">
+                    <i data-lucide="plus-circle" class="w-4 h-4 mr-2"></i> Catat Peminjaman
+                </a>
+            </div>
+
+            @if(session('success'))
+            <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg relative flex items-center mb-4" role="alert">
+                <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>
+                <span class="block sm:inline text-sm font-medium">{{ session('success') }}</span>
+            </div>
+            @endif
+
+            <!-- Tabel Transaksi -->
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-600">
+                        <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider">Nama Mahasiswa</th>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider">Barang Dipinjam</th>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider">Tanggal Pinjam</th>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider text-center">Status</th>
+                                <th scope="col" class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            
+                            @forelse($peminjaman as $pinjam)
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-slate-900">
+                                    {{ $pinjam->nama_peminjam }}
+                                </td>
+                                <td class="px-6 py-4 font-medium text-blue-700">
+                                    {{ $pinjam->barang->nama_barang ?? 'Barang Dihapus' }}
+                                </td>
+                                <td class="px-6 py-4 text-slate-500">
+                                    {{ \Carbon\Carbon::parse($pinjam->tanggal_pinjam)->format('d M Y') }}
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    @if($pinjam->status_pinjam == 'Dipinjam')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">
+                                            <i data-lucide="clock" class="w-3 h-3 mr-1"></i> Dipinjam
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                            <i data-lucide="check" class="w-3 h-3 mr-1"></i> Dikembalikan
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right space-x-3">
+                                    <a href="{{ route('peminjaman.edit', $pinjam->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                                        <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit Status
+                                    </a>
+                                    
+                                    <form action="{{ route('peminjaman.destroy', $pinjam->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin menghapus riwayat ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center text-rose-600 hover:text-rose-800 font-medium transition-colors">
+                                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                                    <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
+                                    <p>Belum ada riwayat transaksi peminjaman.</p>
+                                </td>
+                            </tr>
+                            @endforelse
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>
