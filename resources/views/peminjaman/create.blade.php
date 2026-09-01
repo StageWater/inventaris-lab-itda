@@ -1,32 +1,78 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Form Peminjaman Barang</title>
-</head>
-<body style="font-family: 'Segoe UI', sans-serif; margin: 40px; background-color: #f4f7f6;">
-    <h1 style="color: #003366;">Catat Peminjaman Barang</h1>
+@extends('layouts.app_simalab')
 
-    <form action="{{ route('peminjaman.store') }}" method="POST" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 400px;">
-        @csrf
-        
-        <label>Nama Peminjam:</label><br>
-        <input type="text" name="nama_peminjam" required style="margin-bottom: 15px; padding: 8px; width: 95%;"><br>
+@section('title', 'Catat Peminjaman | SIMALAB ITDA')
+@section('header', 'Manajemen Transaksi')
+@section('activeMenu', 'peminjaman')
 
-        <label>Barang (Hanya yang Tersedia):</label><br>
-        <select name="barang_id" required style="margin-bottom: 15px; padding: 8px; width: 100%;">
-            <option value="">-- Pilih Barang --</option>
-            @foreach($barang as $item)
-                <option value="{{ $item->id }}">{{ $item->kode_barang }} - {{ $item->nama_barang }}</option>
-            @endforeach
-        </select><br>
+@section('content')
+    <a href="{{ route('peminjaman.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Riwayat Peminjaman
+    </a>
 
-        <label>Tanggal Pinjam:</label><br>
-        <!-- Tipe "date" agar muncul kalender otomatis -->
-        <input type="date" name="tanggal_pinjam" required style="margin-bottom: 25px; padding: 8px; width: 95%;"><br>
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl">
+        <div class="p-6 border-b border-slate-200 bg-slate-50/50">
+            <h2 class="text-xl font-bold text-blue-950">Catat Peminjaman Baru</h2>
+            <p class="text-sm text-slate-500 mt-1">Daftarkan proses peminjaman aset kepada mahasiswa.</p>
+        </div>
 
-        <button type="submit" style="padding: 10px 15px; background-color: #00509E; color: white; border: none; cursor:pointer; font-weight: bold; border-radius: 5px;">Simpan Transaksi</button>
-        <a href="{{ route('peminjaman.index') }}" style="margin-left: 10px; color: #555; text-decoration: none;">Batal</a>
-    </form>
-</body>
-</html>
+        <div class="p-6">
+            @if($errors->any())
+                <div class="mb-4 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg">
+                    <ul class="list-disc list-inside text-sm">
+                        @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('peminjaman.store') }}" method="POST" class="space-y-5">
+                @csrf
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Peminjam</label>
+                    <input type="text" name="nama_peminjam" value="{{ old('nama_peminjam') }}" required placeholder="Nama / NIM mahasiswa"
+                        class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">NIM (Opsional)</label>
+                    <input type="text" name="nim" value="{{ old('nim') }}" placeholder="Contoh: 621801234"
+                        class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Barang (Hanya yang Tersedia)</label>
+                    @if($barang->isEmpty())
+                        <div class="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg text-sm">
+                            Tidak ada barang tersedia untuk dipinjam saat ini.
+                        </div>
+                    @else
+                        <div class="relative">
+                            <select name="barang_id" required class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                                <option value="" disabled selected>-- Pilih Barang --</option>
+                                @foreach($barang as $item)
+                                    <option value="{{ $item->id }}" {{ old('barang_id') == $item->id ? 'selected' : '' }}>
+                                        {{ $item->kode_barang }} - {{ $item->nama_barang }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                        </div>
+                    @endif
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Pinjam</label>
+                    <input type="date" name="tanggal_pinjam" value="{{ old('tanggal_pinjam', now()->toDateString()) }}" required
+                        class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                </div>
+
+                <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-100">
+                    <a href="{{ route('peminjaman.index') }}" class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Batal</a>
+                    <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-sm transition-all flex items-center">
+                        <i data-lucide="save" class="w-4 h-4 mr-2"></i> Simpan Transaksi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection

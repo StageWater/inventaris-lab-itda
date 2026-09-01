@@ -15,10 +15,11 @@ Route::middleware(['auth'])->group(function () {
     // 2. Master Data
     Route::resource('ruangan', RuanganController::class);
     Route::resource('barang', App\Http\Controllers\BarangController::class);
+    Route::resource('users', App\Http\Controllers\UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     // 3. Transaksi
     Route::put('/peminjaman/{id}/kembalikan', [App\Http\Controllers\PeminjamanController::class, 'kembalikan'])->name('peminjaman.kembalikan');
-    Route::resource('peminjaman', App\Http\Controllers\PeminjamanController::class);
+    Route::resource('peminjaman', App\Http\Controllers\PeminjamanController::class)->only(['index', 'create', 'store', 'destroy']);
 
     // 4. Rute Profile (Wajib ada agar menu Breeze tidak error)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

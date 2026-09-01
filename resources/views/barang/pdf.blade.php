@@ -25,6 +25,7 @@
                 <th>No</th>
                 <th>Kode Barang</th>
                 <th>Nama Barang</th>
+                <th>Ruangan</th>
                 <th>Kategori</th>
                 <th>Kondisi</th>
                 <th>Status</th>
@@ -36,6 +37,7 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $item->kode_barang }}</td>
                     <td>{{ $item->nama_barang }}</td>
+                    <td>{{ $item->ruangan->nama_ruangan ?? $item->ruangan_id }}</td>
                     <td>{{ $item->kategori }}</td>
                     <td>{{ $item->kondisi }}</td>
                     <td>{{ $item->status }}</td>

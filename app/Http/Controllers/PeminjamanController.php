@@ -2,114 +2,119 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Peminjaman;
 use App\Models\Barang;
+use App\Models\Peminjaman;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PeminjamanController extends Controller
 {
-    // 1. Tampilkan Daftar Transaksi
+    // Admin Ruangan hanya melihat transaksi barang di ruangannya sendiri
+    private function query()
+    {
+        $query = Peminjaman::with('barang');
+        if (Auth::user()->ruangan_id != null) {
+            $query->whereHas('barang', function ($q) {
+                $q->where('ruangan_id', Auth::user()->ruangan_id);
+            });
+        }
+        return $query;
+    }
+
     public function index()
     {
-        $peminjaman = Peminjaman::with('barang')->get();
+        $peminjaman = $this->query()->get();
         return view('peminjaman.index', compact('peminjaman'));
     }
 
-    // 2. Tampilkan Form Pinjam Baru
     public function create()
     {
-        // Hanya tampilkan barang yang statusnya 'Tersedia'
-        $barang = Barang::where('status', 'Tersedia')->get();
+        // Hanya tampilkan barang yang tersedia dan (jika admin ruangan) punya milik ruangannya
+        $barang = Barang::where('status', 'Tersedia');
+        if (Auth::user()->ruangan_id != null) {
+            $barang->where('ruangan_id', Auth::user()->ruangan_id);
+        }
+        $barang = $barang->get();
         return view('peminjaman.create', compact('barang'));
     }
 
-    // 3. Simpan Data Pinjaman Baru
     public function store(Request $request)
     {
         $request->validate([
             'nama_peminjam' => 'required',
-            'barang_id' => 'required',
+            'nim' => 'nullable|string|max:30',
+            'barang_id' => 'required|exists:barangs,id',
             'tanggal_pinjam' => 'required|date'
         ]);
 
+        $barang = Barang::findOrFail($request->barang_id);
+
+        // RBAC: Admin Ruangan tidak boleh meminjamkan barang ruangan lain
+        if (Auth::user()->ruangan_id != null && $barang->ruangan_id != Auth::user()->ruangan_id) {
+            abort(403, 'Anda hanya dapat meminjamkan barang di ruangan Anda.');
+        }
+
+        // Anti-double: barang yang sudah "Dipinjam" tidak boleh dipinjam lagi
+        if ($barang->status !== 'Tersedia') {
+            return back()->with('error', 'Barang tersebut sedang dipinjam oleh pihak lain.');
+        }
+
         Peminjaman::create([
             'nama_peminjam' => $request->nama_peminjam,
-            'barang_id' => $request->barang_id,
+            'nim' => $request->nim,
+            'barang_id' => $barang->id,
             'tanggal_pinjam' => $request->tanggal_pinjam,
             'status_pinjam' => 'Dipinjam'
         ]);
 
-        // Kunci status barang
-        $barang = Barang::find($request->barang_id);
-        if ($barang) {
-            $barang->status = 'Dipinjam';
-            $barang->save();
-        }
-
-        return redirect()->route('peminjaman.index');
+        $barang->update(['status' => 'Dipinjam']);
+        return redirect()->route('peminjaman.index')->with('success', 'Peminjaman berhasil dicatat.');
     }
 
-    // 4. Logika Tombol Kembalikan
     public function kembalikan($id)
     {
-        $peminjaman = Peminjaman::find($id);
-        if ($peminjaman) {
-           $peminjaman->status_pinjam = 'Dikembalikan';
-            $peminjaman->save();
+        $peminjaman = $this->query()->findOrFail($id);
 
-            $barang = Barang::find($peminjaman->barang_id);
-            if ($barang) {
-                $barang->status = 'Tersedia';
-                $barang->save();
-            }
+        if ($peminjaman->status_pinjam === 'Dipinjam') {
+            $peminjaman->update([
+                'status_pinjam' => 'Dikembalikan',
+                'tanggal_kembali' => now()->toDateString(),
+            ]);
+            Barang::where('id', $peminjaman->barang_id)->update(['status' => 'Tersedia']);
         }
-        return redirect()->route('peminjaman.index');
+
+        return redirect()->route('peminjaman.index')->with('success', 'Barang berhasil dikembalikan.');
     }
 
-    // 5. Logika Tombol Hapus (Untuk memberantas data duplikat/salah)
     public function destroy($id)
     {
-        $peminjaman = Peminjaman::find($id);
+        $peminjaman = $this->query()->findOrFail($id);
 
-        if ($peminjaman) {
-            // Jika status masih 'Dipinjam', bebaskan barangnya dulu
-            if ($peminjaman->status_pinjam == 'Dipinjam') {
-                $barang = Barang::find($peminjaman->barang_id);
-                if ($barang) {
-                    $barang->status = 'Tersedia';
-                    $barang->save();
-                }
-            }
-            
-            // Hapus data transaksi secara permanen
-            $peminjaman->delete();
+        // Jika masih dipinjam, bebaskan barangnya dulu
+        if ($peminjaman->status_pinjam === 'Dipinjam') {
+            Barang::where('id', $peminjaman->barang_id)->update(['status' => 'Tersedia']);
         }
 
-        return redirect()->route('peminjaman.index');
+        $peminjaman->delete();
+        return redirect()->route('peminjaman.index')->with('success', 'Riwayat peminjaman dihapus.');
     }
 
-    // 6. Logika Surat Bebas Lab
     public function suratBebasLab(Request $request)
     {
-        $namaPeminjam = $request->input('nama'); 
+        $nama = trim($request->input('nama'));
 
-        if ($namaPeminjam) {
-            // Cek apakah mahasiswa masih punya tanggungan pinjaman yang belum dikembalikan
-            $tanggungan = \App\Models\Peminjaman::where('nama_peminjam', 'like', "%$namaPeminjam%")
+        if ($nama) {
+            $tanggungan = Peminjaman::where('nama_peminjam', 'like', "%$nama%")
                 ->where('status_pinjam', 'Dipinjam')
                 ->count();
 
             if ($tanggungan > 0) {
-                return back()->with('error', 'Gagal! Mahasiswa masih memiliki ' . $tanggungan . ' tanggungan barang yang belum dikembalikan.');
-            } else {
-               if ($tanggungan > 0) {
-                return back()->with('error', 'Gagal! Mahasiswa masih memiliki ' . $tanggungan . ' tanggungan barang yang belum dikembalikan.');
-            } else {
-                // MENGGUNAKAN FILE BLADE KHUSUS UNTUK DESAIN PDF
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('peminjaman.cetak_surat_pdf', compact('namaPeminjam'));
-                return $pdf->download('Surat_Bebas_Lab_' . $namaPeminjam . '.pdf');
+                return back()->with('error', "Gagal! Mahasiswa masih memiliki {$tanggungan} tanggungan barang yang belum dikembalikan.");
             }
-            }
+
+            $pdf = Pdf::loadView('peminjaman.cetak_surat_pdf', ['namaPeminjam' => $nama]);
+            return $pdf->download('Surat_Bebas_Lab_' . $nama . '.pdf');
         }
 
         return view('peminjaman.surat');

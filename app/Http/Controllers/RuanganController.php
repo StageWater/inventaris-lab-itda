@@ -2,96 +2,70 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ruangan;
 use Illuminate\Http\Request;
-// Opsional: Boleh ditambahkan use App\Models\Ruangan; di sini jika mau lebih rapi
+use Illuminate\Support\Facades\Auth;
 
 class RuanganController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Hanya Super Admin (ruangan_id NULL) yang boleh mengelola ruangan
+    private function authorizeSuperAdmin()
+    {
+        abort_if(Auth::user()->ruangan_id !== null, 403, 'Anda tidak memiliki akses untuk mengelola ruangan.');
+    }
+
     public function index()
     {
-        // 1. Mengambil semua data dari tabel ruangan menggunakan Model
-        $ruangan = \App\Models\Ruangan::all();
-
-        // 2. Mengirim data tersebut ke file tampilan (View) ruangan/index.blade.php
+        $this->authorizeSuperAdmin();
+        $ruangan = Ruangan::withCount('barangs')->get();
         return view('ruangan.index', compact('ruangan'));
     }
-    
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
-        // Membuka file tampilan form tambah data
+        $this->authorizeSuperAdmin();
         return view('ruangan.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-   public function store(Request $request)
+    public function store(Request $request)
     {
-        $ruangan = new \App\Models\Ruangan;
-        
-        // Menangkap Kode Ruangan dan Nama Ruangan
-        $ruangan->kode_ruangan = $request->kode_ruangan;
-        $ruangan->nama_ruangan = $request->nama_ruangan;
-        
-        // Simpan ke database
-        $ruangan->save();
+        $this->authorizeSuperAdmin();
 
-        return redirect()->route('ruangan.index');
+        $request->validate([
+            'kode_ruangan' => 'required|unique:ruangans,kode_ruangan',
+            'nama_ruangan' => 'required',
+        ]);
+
+        Ruangan::create($request->only(['kode_ruangan', 'nama_ruangan', 'keterangan']));
+        return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
-        // Mencari data ruangan berdasarkan ID, lalu menampilkannya di form edit
-        $ruangan = \App\Models\Ruangan::find($id);
-        
+        $this->authorizeSuperAdmin();
+        $ruangan = Ruangan::findOrFail($id);
         return view('ruangan.edit', compact('ruangan'));
     }
 
     public function update(Request $request, string $id)
     {
-        // Mencari data lama, menimpanya dengan data baru, lalu menyimpannya
-        $ruangan = \App\Models\Ruangan::find($id);
-        
-        if ($ruangan) {
-            $ruangan->kode_ruangan = $request->kode_ruangan;
-            $ruangan->nama_ruangan = $request->nama_ruangan;
-            $ruangan->save();
-        }
+        $this->authorizeSuperAdmin();
 
-        // Mengarahkan user kembali ke halaman tabel utama
-        return redirect()->route('ruangan.index');
+        $ruangan = Ruangan::findOrFail($id);
+        $request->validate([
+            'kode_ruangan' => 'required|unique:ruangans,kode_ruangan,' . $id,
+            'nama_ruangan' => 'required',
+        ]);
+
+        $ruangan->update($request->only(['kode_ruangan', 'nama_ruangan', 'keterangan']));
+        return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil diperbarui.');
     }
-    /**
-     * Remove the specified resource from storage.
-     */
-   public function destroy(string $id)
-    {
-        // 1. Cari data ruangan berdasarkan ID yang diklik
-        $ruangan = \App\Models\Ruangan::find($id);
-        
-        // 2. Jika datanya ketemu, hapus dari database
-        if ($ruangan) {
-            $ruangan->delete();
-        }
 
-        // 3. Kembalikan halaman ke tabel awal
-        return redirect()->route('ruangan.index');
+    public function destroy(string $id)
+    {
+        $this->authorizeSuperAdmin();
+        $ruangan = Ruangan::findOrFail($id);
+        $ruangan->delete();
+        return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil dihapus.');
     }
 }
