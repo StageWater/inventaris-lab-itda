@@ -5,12 +5,12 @@
 @section('activeMenu', 'ruangan')
 
 @section('content')
-    <div class="flex justify-between items-end mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
             <h2 class="text-2xl font-bold text-blue-950">Daftar Ruangan</h2>
             <p class="text-sm text-slate-500 mt-1">Kelola lokasi laboratorium untuk penempatan aset.</p>
         </div>
-        <a href="{{ route('ruangan.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5">
+        <a href="{{ route('ruangan.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 shrink-0">
             <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Ruangan
         </a>
     </div>

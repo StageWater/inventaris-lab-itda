@@ -13,7 +13,9 @@ class Peminjaman extends Model
         'barang_id',
         'nama_peminjam',
         'nim',
+        'berkas',
         'tanggal_pinjam',
+        'tanggal_pengembalian',
         'tanggal_kembali',
         'status_pinjam'
     ];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Barang;
 use App\Models\Peminjaman;
+use App\Models\Ruangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -22,10 +23,23 @@ class PeminjamanController extends Controller
         return $query;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $peminjaman = $this->query()->get();
-        return view('peminjaman.index', compact('peminjaman'));
+        $query = $this->query();
+
+        // Filter oleh ruangan
+        if ($request->filled('ruangan_id')) {
+            $query->whereHas('barang', function ($q) use ($request) {
+                $q->where('ruangan_id', $request->ruangan_id);
+            });
+        }
+
+        $peminjaman = $query->get();
+
+        // Daftar ruangan untuk dropdown filter (hanya untuk Super Admin)
+        $ruangan = Ruangan::orderBy('nama_ruangan')->get();
+
+        return view('peminjaman.index', compact('peminjaman', 'ruangan'));
     }
 
     public function create()
@@ -45,7 +59,9 @@ class PeminjamanController extends Controller
             'nama_peminjam' => 'required',
             'nim' => 'nullable|string|max:30',
             'barang_id' => 'required|exists:barangs,id',
-            'tanggal_pinjam' => 'required|date'
+            'tanggal_pinjam' => 'required|date',
+            'tanggal_pengembalian' => 'nullable|date',
+            'berkas' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048'
         ]);
 
         $barang = Barang::findOrFail($request->barang_id);
@@ -60,13 +76,20 @@ class PeminjamanController extends Controller
             return back()->with('error', 'Barang tersebut sedang dipinjam oleh pihak lain.');
         }
 
-        Peminjaman::create([
+        $data = [
             'nama_peminjam' => $request->nama_peminjam,
             'nim' => $request->nim,
             'barang_id' => $barang->id,
             'tanggal_pinjam' => $request->tanggal_pinjam,
+            'tanggal_pengembalian' => $request->tanggal_pengembalian,
             'status_pinjam' => 'Dipinjam'
-        ]);
+        ];
+
+        if ($request->hasFile('berkas')) {
+            $data['berkas'] = $request->file('berkas')->store('berkas-peminjaman', 'public');
+        }
+
+        Peminjaman::create($data);
 
         $barang->update(['status' => 'Dipinjam']);
         return redirect()->route('peminjaman.index')->with('success', 'Peminjaman berhasil dicatat.');
@@ -94,6 +117,11 @@ class PeminjamanController extends Controller
         // Jika masih dipinjam, bebaskan barangnya dulu
         if ($peminjaman->status_pinjam === 'Dipinjam') {
             Barang::where('id', $peminjaman->barang_id)->update(['status' => 'Tersedia']);
+        }
+
+        // Hapus berkas jika ada
+        if ($peminjaman->berkas && \Storage::disk('public')->exists($peminjaman->berkas)) {
+            \Storage::disk('public')->delete($peminjaman->berkas);
         }
 
         $peminjaman->delete();

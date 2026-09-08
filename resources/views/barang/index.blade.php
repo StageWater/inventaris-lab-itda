@@ -5,12 +5,12 @@
 @section('activeMenu', 'barang')
 
 @section('content')
-    <div class="flex justify-between items-end mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
             <h2 class="text-2xl font-bold text-blue-950">Daftar Inventaris</h2>
             <p class="text-sm text-slate-500 mt-1">Kelola seluruh data barang atau aset yang ada di laboratorium.</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 shrink-0">
             <a href="{{ route('barang.cetak') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium text-blue-700 bg-white border border-slate-300 hover:bg-slate-50 shadow-sm h-10 px-4">
                 <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Cetak PDF
             </a>
@@ -21,11 +21,33 @@
     </div>
 
     <form method="GET" action="{{ route('barang.index') }}" class="mb-4">
-        <div class="relative max-w-sm">
-            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-            <input type="text" name="katakunci" value="{{ request('katakunci') }}" placeholder="Cari kode / nama barang..."
-                class="w-full pl-10 pr-20 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
-            <button type="submit" class="absolute right-1.5 top-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-md">Cari</button>
+        <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div class="relative max-w-sm flex-1">
+                <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                <input type="text" name="katakunci" value="{{ request('katakunci') }}" placeholder="Cari kode / nama barang..."
+                    class="w-full pl-10 pr-20 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
+                <button type="submit" class="absolute right-1.5 top-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-md">Cari</button>
+            </div>
+            @if(Auth::user()->ruangan_id === null)
+            <div class="sm:w-56">
+                <select name="ruangan_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                    <option value="">-- Semua Ruangan --</option>
+                    @foreach($ruangan as $ruang)
+                        <option value="{{ $ruang->id }}" {{ request('ruangan_id') == $ruang->id ? 'selected' : '' }}>{{ $ruang->nama_ruangan }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex flex-row gap-3">
+                <button type="submit" class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all bg-slate-700 text-white hover:bg-slate-800 h-10 px-4">
+                    <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Filter
+                </button>
+                @if(request('ruangan_id'))
+                <a href="{{ route('barang.index') }}" class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 h-10 px-4">
+                    <i data-lucide="x" class="w-4 h-4 mr-2"></i> Reset
+                </a>
+                @endif
+            </div>
+            @endif
         </div>
     </form>
 

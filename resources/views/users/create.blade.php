@@ -61,9 +61,9 @@
                     <p class="text-xs text-slate-500 mt-1">Pilih ruangan untuk menjadikan Admin Ruangan, atau tetap kosong untuk Super Admin.</p>
                 </div>
 
-                <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-100">
-                    <a href="{{ route('users.index') }}" class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Batal</a>
-                    <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-sm transition-all flex items-center">
+                <div class="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end sm:space-x-3 space-y-reverse space-y-3 border-t border-slate-100">
+                    <a href="{{ route('users.index') }}" class="px-5 py-2.5 text-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Batal</a>
+                    <button type="submit" class="px-5 py-2.5 text-center text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-sm transition-all flex items-center justify-center">
                         <i data-lucide="save" class="w-4 h-4 mr-2"></i> Simpan Data
                     </button>
                 </div>

@@ -31,8 +31,17 @@ class BarangController extends Controller
             });
         }
 
+        // Filter ruangan (hanya untuk Super Admin)
+        if (Auth::user()->ruangan_id === null && $request->filled('ruangan_id')) {
+            $query->where('ruangan_id', $request->ruangan_id);
+        }
+
         $barang = $query->get();
-        return view('barang.index', compact('barang'));
+
+        // Daftar ruangan untuk dropdown filter (hanya untuk Super Admin)
+        $ruangan = Auth::user()->ruangan_id === null ? Ruangan::orderBy('nama_ruangan')->get() : collect();
+
+        return view('barang.index', compact('barang', 'ruangan'));
     }
 
     public function create()
