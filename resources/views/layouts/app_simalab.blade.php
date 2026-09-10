@@ -4,12 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'SIMALAB ITDA')</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
     </script>
+    <style>
+        .anim-reveal { opacity: 0; transform: translateY(16px); transition: opacity .45s ease, transform .45s ease; }
+        .anim-reveal.is-visible { opacity: 1; transform: translateY(0); }
+        .anim-reveal-fade { opacity: 0; transition: opacity .45s ease; }
+        .anim-reveal-fade.is-visible { opacity: 1; }
+        @media (prefers-reduced-motion: reduce) {
+            .anim-reveal, .anim-reveal-fade { opacity: 1 !important; transform: none !important; transition: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 antialiased lg:flex lg:h-screen lg:overflow-hidden">
 
@@ -19,22 +28,22 @@
         $activeMenu = $activeMenu ?? '';
     @endphp
 
-    <!-- OVERLAY (mobile) -->
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden" onclick="tutupMenu()"></div>
+<!-- BACKDROP (mobile) -->
+    <div id="backdrop" class="fixed inset-0 z-30 hidden bg-slate-900/60 backdrop-blur-sm lg:hidden"></div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar"
-        class="w-64 bg-white border-r border-slate-200 flex flex-col z-40 fixed inset-y-0 left-0 -translate-x-full lg:translate-x-0 lg:static shrink-0 transition-transform duration-300 ease-in-out">
-        <div class="h-20 flex items-center px-5 border-b border-slate-200 bg-blue-950">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex h-full w-64 max-w-[85vw] flex-col bg-white border-r border-slate-200 transform -translate-x-full transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:transition-none">
+
+        <div class="h-20 flex items-center px-5 border-b border-slate-200 bg-blue-950 shrink-0">
             <div class="w-11 h-11 bg-white rounded-full flex items-center justify-center p-1 mr-3 shadow-md shrink-0">
                 <img src="{{ asset('logo-itda.png') }}" alt="Logo ITDA" class="w-full h-full object-contain" onerror="this.style.display='none'; document.getElementById('ikon-cadangan').style.display='block';">
                 <i id="ikon-cadangan" data-lucide="plane" class="text-blue-800 w-6 h-6 hidden"></i>
             </div>
-            <div class="flex flex-col flex-1 min-w-0">
+<div class="flex flex-col min-w-0">
                 <span class="font-bold text-lg tracking-tight text-white leading-tight">SIMALAB<span class="text-blue-400 font-normal">.</span></span>
                 <span class="text-[9px] text-blue-200 uppercase tracking-widest mt-0.5">Dirgantara Adisutjipto</span>
             </div>
-            <button type="button" onclick="tutupMenu()" class="lg:hidden text-blue-200 hover:text-white p-1 -mr-1" aria-label="Tutup menu">
+            <button id="menu-close" type="button" class="ml-auto lg:hidden inline-flex items-center justify-center p-2 rounded-md text-blue-200 hover:text-white hover:bg-blue-900 transition-colors" aria-label="Tutup menu">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
@@ -61,21 +70,28 @@
                 <i data-lucide="arrow-right-left" class="w-4 h-4 mr-3 {{ $activeMenu === 'peminjaman' ? 'text-blue-700' : 'text-slate-400' }}"></i> Transaksi
             </a>
 
+            @if($isSuperAdmin)
             <a href="{{ route('surat.bebas.lab') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'surat' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
                 <i data-lucide="file-check" class="w-4 h-4 mr-3 {{ $activeMenu === 'surat' ? 'text-blue-700' : 'text-slate-400' }}"></i> Surat Bebas Lab
+            </a>
+            @endif
+
+            <a href="{{ route('log.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'log' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="history" class="w-4 h-4 mr-3 {{ $activeMenu === 'log' ? 'text-blue-700' : 'text-slate-400' }}"></i> Riwayat Aktivitas
             </a>
         </nav>
 
         <div class="p-4 border-t border-slate-200 bg-slate-50/50">
-            <div class="flex items-center mb-4">
+            <a href="{{ route('profile.edit') }}" class="flex items-center mb-4 group rounded-lg p-2 -m-2 hover:bg-white transition-colors">
                 <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0">
                     {{ substr($user->name, 0, 1) }}
                 </div>
-                <div class="ml-3 min-w-0">
-                    <p class="text-sm font-semibold text-slate-800 truncate">{{ $user->name }}</p>
-                    <p class="text-[11px] text-slate-500 font-medium">{{ $isSuperAdmin ? 'Super Admin' : 'Admin Ruang ' . $user->ruangan_id }}</p>
+                <div class="ml-3 min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-slate-800 truncate group-hover:text-blue-700 transition-colors">{{ $user->name }}</p>
+                    <p class="text-[11px] text-slate-500 font-medium">{{ $isSuperAdmin ? 'Super Admin' : 'Admin Ruang' }}</p>
                 </div>
-            </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors shrink-0"></i>
+            </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-md transition-colors border border-rose-100">
@@ -86,27 +102,37 @@
     </aside>
 
     <!-- KONTEN UTAMA -->
-    <div class="flex flex-col min-h-screen lg:min-h-0 lg:flex-1 lg:h-screen lg:overflow-hidden">
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0">
-            <div class="flex items-center min-w-0">
-                <button type="button" onclick="bukaMenu()" class="lg:hidden p-2 -ml-2 mr-2 text-slate-600 hover:text-blue-700 hover:bg-slate-100 rounded-md" aria-label="Buka menu">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
-                <h1 class="text-base sm:text-lg font-semibold text-slate-800 truncate">@yield('header', 'Dashboard')</h1>
+<main class="flex flex-1 flex-col min-w-0 lg:h-screen lg:overflow-hidden">
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center gap-3 px-4 sm:px-6 lg:px-8 shrink-0">
+            <button id="menu-open" type="button" class="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Buka menu">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <div class="min-w-0">
+                <nav class="flex items-center text-xs text-slate-500 mb-0.5 whitespace-nowrap overflow-hidden">
+                    <a href="{{ route('dashboard') }}" class="hover:text-blue-700 transition-colors font-medium">Home</a>
+                    <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block shrink-0"></i>
+                    @hasSection('breadcrumbs')
+                        @yield('breadcrumbs')
+                    @else
+                        <span class="text-slate-700 font-medium truncate">@yield('header')</span>
+                    @endif
+                </nav>
+                <h1 class="text-base sm:text-lg font-semibold text-slate-800 leading-tight truncate">@yield('header', 'Dashboard')</h1>
             </div>
-            @yield('header-actions')
+            <div class="ml-auto shrink-0">
+                @yield('header-actions')
+            </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto">
-            <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6" id="app-content">
                 @if(session('success'))
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
                     <i data-lucide="check-circle" class="w-5 h-5 mr-2 shrink-0"></i>
                     <span class="text-sm font-medium">{{ session('success') }}</span>
                 </div>
                 @endif
-
-                @if(session('error'))
+@if(session('error'))
                 <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg relative flex items-center" role="alert">
                     <i data-lucide="alert-circle" class="w-5 h-5 mr-2 shrink-0"></i>
                     <span class="text-sm font-medium">{{ session('error') }}</span>
@@ -115,20 +141,36 @@
 
                 @yield('content')
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
     <script>
-        function bukaMenu() {
-            document.getElementById('sidebar').classList.remove('-translate-x-full');
-            document.getElementById('sidebar-backdrop').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('backdrop');
+        function setMenu(open) {
+            sidebar.classList.toggle('-translate-x-full', !open);
+            backdrop.classList.toggle('hidden', !open);
         }
-        function tutupMenu() {
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-            document.getElementById('sidebar-backdrop').classList.add('hidden');
-            document.body.style.overflow = '';
+        document.getElementById('menu-open').addEventListener('click', () => setMenu(true));
+        document.getElementById('menu-close').addEventListener('click', () => setMenu(false));
+        backdrop.addEventListener('click', () => setMenu(false));
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('.anim-reveal, .anim-reveal-fade').forEach(el => el.classList.add('is-visible'));
+        } else {
+            const revealChildren = (root) => Array.from(root.children).forEach((el, i) => {
+                el.classList.add(el.tagName === 'TR' ? 'anim-reveal-fade' : 'anim-reveal');
+                el.style.transitionDelay = Math.min(i * 70, 420) + 'ms';
+            });
+            revealChildren(document.getElementById('app-content'));
+            document.querySelectorAll('[data-reveal-stagger]').forEach(revealChildren);
+            const io = new IntersectionObserver(entries => {
+                entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); } });
+            }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+            document.querySelectorAll('.anim-reveal').forEach(el => io.observe(el));
         }
+
         lucide.createIcons();
     </script>
 </body>

@@ -4,6 +4,12 @@
 @section('header', 'Manajemen Pengguna')
 @section('activeMenu', 'users')
 
+@section('breadcrumbs')
+<a href="{{ route('users.index') }}" class="hover:text-blue-700 transition-colors font-medium">Manajemen Pengguna</a>
+<i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
+<span class="text-slate-700 font-medium">Tambah</span>
+@endsection
+
 @section('content')
     <a href="{{ route('users.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
         <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Daftar Pengguna
@@ -61,7 +67,7 @@
                     <p class="text-xs text-slate-500 mt-1">Pilih ruangan untuk menjadikan Admin Ruangan, atau tetap kosong untuk Super Admin.</p>
                 </div>
 
-                <div class="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end sm:space-x-3 space-y-reverse space-y-3 border-t border-slate-100">
+<div class="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end sm:space-x-3 space-y-reverse space-y-3 border-t border-slate-100">
                     <a href="{{ route('users.index') }}" class="px-5 py-2.5 text-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Batal</a>
                     <button type="submit" class="px-5 py-2.5 text-center text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-sm transition-all flex items-center justify-center">
                         <i data-lucide="save" class="w-4 h-4 mr-2"></i> Simpan Data

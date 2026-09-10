@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\LogAktivitas;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -49,6 +50,12 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+
+        LogAktivitas::create([
+            'user_id' => $user->id,
+            'aksi' => 'Registrasi',
+            'deskripsi' => "Akun {$user->name} ({$user->email}) terdaftar sebagai Admin Ruangan.",
+        ]);
 
         return redirect()->route('dashboard');
     }

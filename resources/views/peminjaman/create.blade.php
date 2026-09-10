@@ -4,6 +4,12 @@
 @section('header', 'Manajemen Transaksi')
 @section('activeMenu', 'peminjaman')
 
+@section('breadcrumbs')
+<a href="{{ route('peminjaman.index') }}" class="hover:text-blue-700 transition-colors font-medium">Manajemen Transaksi</a>
+<i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
+<span class="text-slate-700 font-medium">Tambah</span>
+@endsection
+
 @section('content')
     <a href="{{ route('peminjaman.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
         <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Riwayat Peminjaman
@@ -77,6 +83,13 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Pengembalian</label>
                     <input type="date" name="tanggal_pengembalian" value="{{ old('tanggal_pengembalian') }}"
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Batas Waktu Pengembalian <span class="text-xs font-normal text-slate-400">(default 7 hari)</span></label>
+                    <input type="date" name="tanggal_batas" value="{{ old('tanggal_batas', now()->addDays(7)->toDateString()) }}" min="{{ old('tanggal_pinjam', now()->toDateString()) }}"
+                        class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                    <p class="text-xs text-slate-400 mt-1">Peminjaman yang melewati tanggal ini otomatis ditandai terlambat.</p>
                 </div>
 
                 <div class="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end sm:space-x-3 space-y-reverse space-y-3 border-t border-slate-100">

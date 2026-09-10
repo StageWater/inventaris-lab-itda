@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Barang;
+use App\Models\LogAktivitas;
 use Illuminate\Support\Facades\Auth; // Tambahan wajib untuk mendeteksi siapa yang login
 
 class DashboardController extends Controller
@@ -26,6 +27,8 @@ class DashboardController extends Controller
         $barang_dipinjam = (clone $query)->where('status', 'Dipinjam')->count();
         $barang_rusak = (clone $query)->whereIn('kondisi', ['Rusak Ringan', 'Rusak Berat'])->count();
 
-        return view('dashboard', compact('total_barang', 'barang_tersedia', 'barang_dipinjam', 'barang_rusak'));
+        $logAktivitas = LogAktivitas::with('user')->latest()->take(5)->get();
+
+        return view('dashboard', compact('total_barang', 'barang_tersedia', 'barang_dipinjam', 'barang_rusak', 'logAktivitas'));
     }
 }

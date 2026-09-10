@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\LogAktivitas;
+use App\Models\Peminjaman;
 use App\Models\Ruangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,16 +33,23 @@ class BarangController extends Controller
             });
         }
 
+if ($status = $request->status) {
+            $query->where('status', $status);
+        }
+
+        if ($request->rusak) {
+            $query->whereIn('kondisi', ['Rusak Ringan', 'Rusak Berat']);
+        }
+
         // Filter ruangan (hanya untuk Super Admin)
         if (Auth::user()->ruangan_id === null && $request->filled('ruangan_id')) {
             $query->where('ruangan_id', $request->ruangan_id);
         }
 
-        $barang = $query->get();
-
         // Daftar ruangan untuk dropdown filter (hanya untuk Super Admin)
         $ruangan = Auth::user()->ruangan_id === null ? Ruangan::orderBy('nama_ruangan')->get() : collect();
 
+        $barang = $query->orderBy('nama_barang')->paginate(15)->withQueryString();
         return view('barang.index', compact('barang', 'ruangan'));
     }
 
@@ -53,12 +62,18 @@ class BarangController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $rules = [
             'kode_barang' => 'required|unique:barangs,kode_barang',
             'nama_barang' => 'required',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-        ], [
-            'kode_barang.unique' => 'Gagal! Kode Barang sudah terpakai.'
+        ];
+        if (Auth::user()->ruangan_id === null) {
+            $rules['ruangan_id'] = 'required|exists:ruangans,id';
+        }
+
+        $request->validate($rules, [
+            'kode_barang.unique' => 'Gagal! Kode Barang sudah terpakai.',
+            'ruangan_id.required' => 'Pilih lokasi ruangan terlebih dahulu.'
         ]);
 
         $data = $request->only(['kode_barang', 'nama_barang', 'kategori', 'kondisi']);
@@ -72,7 +87,18 @@ class BarangController extends Controller
         }
 
         Barang::create($data);
+        LogAktivitas::catat('Tambah Barang', "Barang {$data['kode_barang']} - {$data['nama_barang']} ditambahkan.");
         return redirect()->route('barang.index')->with('success', 'Barang berhasil ditambahkan.');
+    }
+
+    public function show(string $id)
+    {
+        $barang = $this->query()->findOrFail($id);
+        $riwayat = Peminjaman::where('barang_id', $barang->id)
+            ->with('barang')
+            ->orderByDesc('created_at')
+            ->get();
+        return view('barang.show', compact('barang', 'riwayat'));
     }
 
     public function edit(string $id)
@@ -86,7 +112,13 @@ class BarangController extends Controller
     {
         $barang = $this->query()->findOrFail($id);
 
-        $request->validate(['kode_barang' => 'required|unique:barangs,kode_barang,' . $id]);
+        $rules = ['kode_barang' => 'required|unique:barangs,kode_barang,' . $id];
+        if (Auth::user()->ruangan_id === null) {
+            $rules['ruangan_id'] = 'required|exists:ruangans,id';
+        }
+        $request->validate($rules, [
+            'ruangan_id.required' => 'Pilih lokasi ruangan terlebih dahulu.'
+        ]);
 
         $data = $request->only(['kode_barang', 'nama_barang', 'kategori', 'kondisi']);
         // RBAC: Admin Ruangan tidak bisa pindahkan barang ke ruangan lain
@@ -95,12 +127,28 @@ class BarangController extends Controller
         }
 
         $barang->update($data);
+        LogAktivitas::catat('Ubah Barang', "Data barang {$barang->kode_barang} - {$barang->nama_barang} diperbarui.");
         return redirect()->route('barang.index')->with('success', 'Barang berhasil diperbarui.');
+    }
+
+    public function ubahStatus(Request $request, string $id)
+    {
+        $barang = $this->query()->findOrFail($id);
+
+        $request->validate(['status' => 'required|in:Tersedia,Maintenance']);
+        if ($request->status === 'Maintenance' && $barang->status === 'Dipinjam') {
+            return back()->with('error', 'Tidak bisa ditandai maintenance, barang sedang dipinjam.');
+        }
+
+        $barang->update(['status' => $request->status]);
+        LogAktivitas::catat('Ubah Status', "Status barang {$barang->kode_barang} - {$barang->nama_barang} menjadi {$request->status}.");
+        return back()->with('success', "Status barang {$barang->kode_barang} diubah menjadi {$request->status}.");
     }
 
     public function destroy(string $id)
     {
         $barang = $this->query()->findOrFail($id);
+        LogAktivitas::catat('Hapus Barang', "Barang {$barang->kode_barang} - {$barang->nama_barang} dihapus.");
         $barang->delete();
         return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus.');
     }

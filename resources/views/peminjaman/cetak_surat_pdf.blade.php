@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Surat Bebas Lab - {{ $namaPeminjam }}</title>
+    <title>Surat Bebas Lab - {{ $nama }}</title>
     <style>
         body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.5; padding: 20px 40px; }
         
@@ -26,9 +26,23 @@
         .ttd-box { float: right; width: 40%; text-align: center; }
         .ttd-box p { margin: 0; }
         .nama-terang { font-weight: bold; text-decoration: underline; margin-top: 70px; }
+
+        /* Tombol Cetak */
+        .btn-print { position: fixed; top: 20px; right: 20px; background: #1d4ed8; color: white; border: none; padding: 12px 20px; font-size: 14px; border-radius: 8px; cursor: pointer; font-family: sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .btn-print:hover { background: #1e40af; }
+        .btn-back { position: fixed; top: 20px; left: 20px; background: white; color: #1e40af; border: 1px solid #1d4ed8; padding: 12px 20px; font-size: 14px; border-radius: 8px; cursor: pointer; font-family: sans-serif; text-decoration: none; }
+        .btn-back:hover { background: #eff6ff; }
+
+        @media print {
+            .btn-print, .btn-back { display: none !important; }
+            body { padding: 0; }
+        }
     </style>
 </head>
 <body>
+
+    <a href="{{ route('surat.bebas.lab') }}" class="btn-back">← Cek NIM Lain</a>
+    <button onclick="window.print()" class="btn-print">Cetak Surat</button>
 
     <!-- KOP SURAT -->
     <div class="kop-surat">
@@ -49,7 +63,11 @@
         <table class="data-mhs">
             <tr>
                 <td>Nama Lengkap</td>
-                <td>: {{ $namaPeminjam }}</td>
+                <td>: {{ $nama }}</td>
+            </tr>
+            <tr>
+                <td>NIM</td>
+                <td>: {{ $nim }}</td>
             </tr>
             <tr>
                 <td>Program Studi</td>

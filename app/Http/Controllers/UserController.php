@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LogAktivitas;
 use App\Models\Ruangan;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,10 +17,17 @@ class UserController extends Controller
         abort_if(Auth::user()->ruangan_id !== null, 403, 'Anda tidak memiliki akses untuk mengelola pengguna.');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $this->authorizeSuperAdmin();
-        $users = User::with('ruangan')->orderBy('name')->get();
+        $query = User::with('ruangan');
+        if ($katakunci = $request->katakunci) {
+            $query->where(function ($q) use ($katakunci) {
+                $q->where('name', 'like', "%$katakunci%")
+                    ->orWhere('email', 'like', "%$katakunci%");
+            });
+        }
+        $users = $query->orderBy('name')->paginate(15)->withQueryString();
         return view('users.index', compact('users'));
     }
 
@@ -49,6 +57,7 @@ class UserController extends Controller
             'ruangan_id' => $request->ruangan_id ?: null,
         ]);
 
+        LogAktivitas::catat('Tambah Pengguna', "Pengguna {$request->name} ({$request->email}) ditambahkan.");
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil ditambahkan.');
     }
 
@@ -82,6 +91,7 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        LogAktivitas::catat('Ubah Pengguna', "Data pengguna {$user->name} ({$user->email}) diperbarui.");
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil diperbarui.');
     }
 
@@ -95,6 +105,7 @@ class UserController extends Controller
             return back()->with('error', 'Tidak dapat menghapus akun yang sedang digunakan.');
         }
         $user->delete();
+        LogAktivitas::catat('Hapus Pengguna', "Pengguna {$user->name} ({$user->email}) dihapus.");
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil dihapus.');
     }
 }

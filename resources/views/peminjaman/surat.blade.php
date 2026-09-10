@@ -12,7 +12,7 @@
                     <i data-lucide="file-check" class="w-7 h-7 text-blue-600"></i>
                 </div>
                 <h2 class="text-xl font-bold text-blue-950">Cetak Surat Bebas Lab</h2>
-                <p class="text-sm text-slate-500 mt-1">Masukkan Nama atau NIM mahasiswa untuk mengecek tanggungan peminjaman.</p>
+                <p class="text-sm text-slate-500 mt-1">Masukkan NIM mahasiswa untuk mengecek tanggungan peminjaman.</p>
             </div>
 
             <div class="p-6">
@@ -25,8 +25,8 @@
 
                 <form action="{{ route('surat.bebas.lab') }}" method="GET" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nama / NIM Mahasiswa</label>
-                        <input type="text" name="nama" value="{{ request('nama') }}" required placeholder="Ketik Nama / NIM Mahasiswa..."
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">NIM Mahasiswa</label>
+                        <input type="text" name="nim" value="{{ request('nim') }}" required placeholder="Contoh: 621801234"
                             class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
                     </div>
 

@@ -5,18 +5,27 @@
 @section('activeMenu', 'ruangan')
 
 @section('content')
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
+<div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
-            <h2 class="text-2xl font-bold text-blue-950">Daftar Ruangan</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Daftar Ruangan</h2>
             <p class="text-sm text-slate-500 mt-1">Kelola lokasi laboratorium untuk penempatan aset.</p>
         </div>
-        <a href="{{ route('ruangan.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 shrink-0">
+        <a href="{{ route('ruangan.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">
             <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Ruangan
         </a>
     </div>
 
+    <form method="GET" action="{{ route('ruangan.index') }}" class="mb-4">
+        <div class="relative w-full md:max-w-sm">
+            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+            <input type="text" name="katakunci" value="{{ request('katakunci') }}" placeholder="Cari kode / nama ruangan..."
+                class="w-full pl-10 pr-20 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
+            <button type="submit" class="absolute right-1.5 top-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-md">Cari</button>
+        </div>
+    </form>
+
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto hidden md:block">
             <table class="w-full text-sm text-left text-slate-600">
                 <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
                     <tr>
@@ -26,17 +35,17 @@
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-100" data-reveal-stagger>
                     @forelse($ruangan as $item)
                     <tr class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-6 py-4 font-medium text-blue-950">{{ $item->kode_ruangan }}</td>
-                        <td class="px-6 py-4">{{ $item->nama_ruangan }}</td>
+                        <td class="px-6 py-4 min-w-[12rem]">{{ $item->nama_ruangan }}</td>
                         <td class="px-6 py-4 text-center">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                                 {{ $item->barangs_count }} barang
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-right space-x-3">
+                        <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
                             <a href="{{ route('ruangan.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
                                 <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
                             </a>
@@ -60,5 +69,44 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="divide-y divide-slate-100 md:hidden" data-reveal-stagger>
+            @forelse($ruangan as $item)
+            <div class="p-5 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="text-sm font-semibold text-blue-950">{{ $item->nama_ruangan }}</div>
+                        <div class="text-xs text-slate-500 mt-0.5">{{ $item->kode_ruangan }}</div>
+                    </div>
+                    <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                        {{ $item->barangs_count }} barang
+                    </span>
+                </div>
+                <div class="flex items-center gap-5 border-t border-slate-100 pt-3">
+                    <a href="{{ route('ruangan.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
+                        <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
+                    </a>
+                    <form action="{{ route('ruangan.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus ruangan ini? Barang di dalamnya ikut terpengaruh.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="inline-flex items-center text-rose-600 hover:text-rose-800 font-medium text-sm transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @empty
+            <div class="px-6 py-12 text-center text-slate-400">
+                <i data-lucide="door-open" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
+                <p>Belum ada ruangan terdaftar.</p>
+            </div>
+            @endforelse
+        </div>
     </div>
+
+    @if($ruangan->hasPages())
+        <div class="mt-4">
+            {{ $ruangan->links() }}
+        </div>
+    @endif
 @endsection

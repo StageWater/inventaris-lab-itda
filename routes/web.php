@@ -31,6 +31,12 @@ Route::middleware(['auth'])->group(function () {
     // Rute Cek & Cetak Surat Bebas Lab
     Route::get('/surat-bebas-lab', [App\Http\Controllers\PeminjamanController::class, 'suratBebasLab'])->name('surat.bebas.lab');
 
+    // 6. Info Status Barang (Maintenance / Tersedia)
+    Route::put('/barang/{id}/status', [App\Http\Controllers\BarangController::class, 'ubahStatus'])->name('barang.status');
+
+    // 7. Riwayat Aktivitas
+    Route::get('/log-aktivitas', [App\Http\Controllers\LogAktivitasController::class, 'index'])->name('log.index');
+
 });
 
 // ----------------------------------------------------

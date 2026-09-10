@@ -5,16 +5,16 @@
 @section('activeMenu', 'barang')
 
 @section('content')
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
+<div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
-            <h2 class="text-2xl font-bold text-blue-950">Daftar Inventaris</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Daftar Inventaris</h2>
             <p class="text-sm text-slate-500 mt-1">Kelola seluruh data barang atau aset yang ada di laboratorium.</p>
         </div>
-        <div class="flex items-center gap-3 shrink-0">
-            <a href="{{ route('barang.cetak') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium text-blue-700 bg-white border border-slate-300 hover:bg-slate-50 shadow-sm h-10 px-4">
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('barang.cetak') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium text-blue-700 bg-white border border-slate-300 hover:bg-slate-50 shadow-sm h-10 px-4 flex-1 sm:flex-none">
                 <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Cetak PDF
             </a>
-            <a href="{{ route('barang.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5">
+            <a href="{{ route('barang.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">
                 <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Barang
             </a>
         </div>
@@ -51,8 +51,41 @@
         </div>
     </form>
 
+    @if(request('status') || request('rusak'))
+        <div class="mb-4 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-center justify-between gap-3">
+            <span class="flex items-center">
+                <i data-lucide="filter" class="w-4 h-4 mr-2 shrink-0"></i>
+                Menampilkan barang berstatus <strong class="ml-1">{{ request('status') ?? 'Rusak (perlu perbaikan)' }}</strong>
+            </span>
+            <a href="{{ route('barang.index', ['katakunci' => request('katakunci')]) }}" class="shrink-0 text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline">
+                Hapus filter
+            </a>
+        </div>
+    @endif
+
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+        @foreach(['Tersedia', 'Dipinjam', 'Maintenance'] as $st)
+            <a href="{{ route('barang.index', array_filter(['status' => $st, 'katakunci' => request('katakunci')])) }}"
+                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors {{ request('status') === $st ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-700' }}">
+                {{ $st }}
+            </a>
+        @endforeach
+        <a href="{{ route('barang.index', array_filter(['katakunci' => request('katakunci')])) }}"
+            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors {{ !request('status') ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-700' }}">
+            Semua
+        </a>
+    </div>
+
+    @if($errors->any())
+        <div class="mb-4 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg text-sm">
+            <ul class="list-disc list-inside">
+                @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto hidden md:block">
             <table class="w-full text-sm text-left text-slate-600">
                 <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
                     <tr>
@@ -64,11 +97,11 @@
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-100" data-reveal-stagger>
                     @forelse($barang as $item)
                     <tr class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-6 py-4 font-medium text-blue-950">{{ $item->kode_barang }}</td>
-                        <td class="px-6 py-4">{{ $item->nama_barang }}</td>
+                        <td class="px-6 py-4 min-w-[12rem]">{{ $item->nama_barang }}</td>
                         <td class="px-6 py-4 text-slate-500">{{ $item->ruangan->nama_ruangan ?? 'Ruang ' . $item->ruangan_id }}</td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->kondisi === 'Baik' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200' }}">
@@ -82,7 +115,10 @@
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">Dipinjam</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-right space-x-3">
+                        <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
+                            <a href="{{ route('barang.show', $item->id) }}" class="inline-flex items-center text-slate-600 hover:text-blue-700 font-medium transition-colors">
+                                <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Lihat
+                            </a>
                             <a href="{{ route('barang.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
                                 <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
                             </a>
@@ -106,5 +142,58 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="divide-y divide-slate-100 md:hidden" data-reveal-stagger>
+            @forelse($barang as $item)
+            <div class="p-5 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="text-sm font-semibold text-blue-950 truncate">{{ $item->nama_barang }}</div>
+                        <div class="text-xs text-slate-500 mt-0.5">{{ $item->kode_barang }}</div>
+                    </div>
+                    @if($item->status == 'Tersedia')
+                        <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">{{ $item->status }}</span>
+                    @else
+                        <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">{{ $item->status }}</span>
+                    @endif
+                </div>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                    <span>
+                        <i data-lucide="door-open" class="w-3.5 h-3.5 inline-block text-slate-400 mr-1"></i>
+                        {{ $item->ruangan->nama_ruangan ?? 'Ruang ' . $item->ruangan_id }}
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->kondisi === 'Baik' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
+                        {{ $item->kondisi }}
+                    </span>
+                </div>
+                <div class="flex items-center gap-5 pt-1">
+                    <a href="{{ route('barang.show', $item->id) }}" class="inline-flex items-center text-slate-600 hover:text-blue-700 font-medium text-sm transition-colors">
+                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Lihat
+                    </a>
+                    <a href="{{ route('barang.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
+                        <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
+                    </a>
+                    <form action="{{ route('barang.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus barang ini?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="inline-flex items-center text-rose-600 hover:text-rose-800 font-medium text-sm transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @empty
+            <div class="px-6 py-12 text-center text-slate-400">
+                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
+                <p>Belum ada data barang.</p>
+            </div>
+            @endforelse
+        </div>
     </div>
+
+    @if($barang->hasPages())
+        <div class="mt-4">
+            {{ $barang->links() }}
+        </div>
+    @endif
 @endsection

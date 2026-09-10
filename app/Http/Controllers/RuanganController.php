@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LogAktivitas;
 use App\Models\Ruangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,10 +15,17 @@ class RuanganController extends Controller
         abort_if(Auth::user()->ruangan_id !== null, 403, 'Anda tidak memiliki akses untuk mengelola ruangan.');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $this->authorizeSuperAdmin();
-        $ruangan = Ruangan::withCount('barangs')->get();
+        $query = Ruangan::withCount('barangs');
+        if ($katakunci = $request->katakunci) {
+            $query->where(function ($q) use ($katakunci) {
+                $q->where('kode_ruangan', 'like', "%$katakunci%")
+                    ->orWhere('nama_ruangan', 'like', "%$katakunci%");
+            });
+        }
+        $ruangan = $query->orderBy('nama_ruangan')->paginate(15)->withQueryString();
         return view('ruangan.index', compact('ruangan'));
     }
 
@@ -37,6 +45,7 @@ class RuanganController extends Controller
         ]);
 
         Ruangan::create($request->only(['kode_ruangan', 'nama_ruangan', 'keterangan']));
+        LogAktivitas::catat('Tambah Ruangan', "Ruangan {$request->kode_ruangan} - {$request->nama_ruangan} ditambahkan.");
         return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil ditambahkan.');
     }
 
@@ -58,14 +67,22 @@ class RuanganController extends Controller
         ]);
 
         $ruangan->update($request->only(['kode_ruangan', 'nama_ruangan', 'keterangan']));
+        LogAktivitas::catat('Ubah Ruangan', "Ruangan {$request->kode_ruangan} - {$request->nama_ruangan} diperbarui.");
         return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil diperbarui.');
     }
 
     public function destroy(string $id)
     {
         $this->authorizeSuperAdmin();
-        $ruangan = Ruangan::findOrFail($id);
+        $ruangan = Ruangan::withCount('barangs')->findOrFail($id);
+
+        // Guard: mencegah penghapusan diam-diam semua barang via ON DELETE CASCADE
+        if ($ruangan->barangs_count > 0) {
+            return back()->with('error', "Gagal! Ruangan {$ruangan->nama_ruangan} masih memiliki {$ruangan->barangs_count} barang. Pindahkan atau hapus barangnya terlebih dahulu.");
+        }
+
         $ruangan->delete();
+        LogAktivitas::catat('Hapus Ruangan', "Ruangan {$ruangan->kode_ruangan} - {$ruangan->nama_ruangan} dihapus.");
         return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil dihapus.');
     }
 }
