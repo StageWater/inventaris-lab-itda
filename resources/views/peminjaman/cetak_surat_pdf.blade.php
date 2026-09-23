@@ -2,35 +2,121 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Surat Bebas Lab - {{ $nama }}</title>
+    <title>Surat Bebas Lab - {{ $nama ?? ($peminjaman->user->name ?? '') }}</title>
     <style>
-        body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.5; padding: 20px 40px; }
+        body { 
+            font-family: 'Times New Roman', Times, serif; 
+            font-size: 12pt; 
+            line-height: 1.5; 
+            padding: 20px 40px; 
+            color: #000;
+        }
         
-        /* Kop Surat */
-        .kop-surat { text-align: center; border-bottom: 3px solid black; padding-bottom: 10px; margin-bottom: 20px; }
-        .kop-surat h1 { margin: 0; font-size: 16pt; text-transform: uppercase; }
-        .kop-surat h2 { margin: 0; font-size: 14pt; }
-        .kop-surat p { margin: 0; font-size: 10pt; font-style: italic; }
+        /* Kop Surat Resmi Sesuai Template */
+        .kop-surat { 
+            text-align: center; 
+            margin-bottom: 5px; 
+        }
+        .kop-surat h1 { 
+            margin: 0; 
+            font-size: 15pt; 
+            font-weight: bold;
+            text-transform: uppercase; 
+        }
+        .kop-surat h2 { 
+            margin: 2px 0; 
+            font-size: 13pt; 
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .garis-kop {
+            border-top: 2px solid black;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
         
+        /* Nomor Surat */
+        .nomor-surat { 
+            text-align: center; 
+            font-size: 12pt;
+            margin-bottom: 25px; 
+        }
+
         /* Isi Surat */
-        .judul-surat { text-align: center; font-weight: bold; text-decoration: underline; margin-bottom: 30px; font-size: 14pt; }
-        .isi-surat { text-align: justify; }
+        .isi-surat { 
+            text-align: justify; 
+        }
+        .list-keperluan {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            padding-left: 50px;
+        }
         
         /* Tabel Data Mahasiswa */
-        table.data-mhs { margin: 20px 0; width: 100%; }
-        table.data-mhs td { padding: 5px; }
-        table.data-mhs td:first-child { width: 30%; font-weight: bold; }
-        
-        /* Bagian Tanda Tangan */
-        .ttd-container { width: 100%; margin-top: 50px; }
-        .ttd-box { float: right; width: 40%; text-align: center; }
-        .ttd-box p { margin: 0; }
-        .nama-terang { font-weight: bold; text-decoration: underline; margin-top: 70px; }
+        table.data-mhs { 
+            margin: 10px 0 20px 0; 
+            width: 100%; 
+            border-collapse: collapse;
+        }
+        table.data-mhs td { 
+            padding: 3px 5px; 
+            vertical-align: top;
+        }
+        table.data-mhs td.label { 
+            width: 140px; 
+        }
+        table.data-mhs td.titik-dua { 
+            width: 15px; 
+        }
 
-        /* Tombol Cetak */
-        .btn-print { position: fixed; top: 20px; right: 20px; background: #1d4ed8; color: white; border: none; padding: 12px 20px; font-size: 14px; border-radius: 8px; cursor: pointer; font-family: sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        /* Bagian Tanda Tangan */
+        .ttd-container { 
+            width: 100%; 
+            margin-top: 40px; 
+        }
+        .ttd-box { 
+            float: right; 
+            width: 320px; 
+            text-align: center; 
+        }
+        .ttd-box p { 
+            margin: 0; 
+        }
+        .nama-pejabat { 
+            font-weight: bold; 
+            margin-top: 80px; 
+        }
+
+        /* Tombol Cetak & Kembali */
+        .btn-print { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #1d4ed8; 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            font-size: 14px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-family: sans-serif; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); 
+        }
         .btn-print:hover { background: #1e40af; }
-        .btn-back { position: fixed; top: 20px; left: 20px; background: white; color: #1e40af; border: 1px solid #1d4ed8; padding: 12px 20px; font-size: 14px; border-radius: 8px; cursor: pointer; font-family: sans-serif; text-decoration: none; }
+        .btn-back { 
+            position: fixed; 
+            top: 20px; 
+            left: 20px; 
+            background: white; 
+            color: #1e40af; 
+            border: 1px solid #1d4ed8; 
+            padding: 12px 20px; 
+            font-size: 14px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-family: sans-serif; 
+            text-decoration: none; 
+        }
         .btn-back:hover { background: #eff6ff; }
 
         @media print {
@@ -46,54 +132,67 @@
 
     <!-- KOP SURAT -->
     <div class="kop-surat">
-        <h2>KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</h2>
-        <h1>INSTITUT TEKNOLOGI DIRGANTARA ADISUTJIPTO (ITDA)</h1>
-        <p>Jl. Janti Blok R, Lanud Adisutjipto, Yogyakarta 55198 | Telp: (0274) 488435</p>
+        <h1>LABORATORIUM TERPADU</h1>
+        <h1>ITD ADISUTJIPTO</h1>
+        <h2>SURAT KETERANGAN BEBAS PEMINJAMAN PERALATAN</h2>
     </div>
 
-    <!-- JUDUL SURAT -->
-    <div class="judul-surat">
-        SURAT KETERANGAN BEBAS LABORATORIUM
+    <div class="garis-kop"></div>
+
+    <!-- NOMOR SURAT -->
+    <div class="nomor-surat">
+        No: {{ $peminjaman->id ?? '2793' }} /Lab. Terpadu/ITDA/{{ date('Y') }}
     </div>
 
     <!-- ISI SURAT -->
     <div class="isi-surat">
-        <p>Kepala Laboratorium Institut Teknologi Dirgantara Adisutjipto (ITDA) dengan ini menerangkan bahwa mahasiswa di bawah ini:</p>
+        <p>Surat ini diberikan kepada yang telah menyelesaikan semua urusan administrasi atau peminjaman alat pada Lab. ITDA untuk :</p>
+        
+        <ol class="list-keperluan">
+            <li>Mengikuti Yudisium Bulan {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}</li>
+            <li>Mengambil Ijazah</li>
+        </ol>
+
+        <p>Identitas Mahasiswa :</p>
         
         <table class="data-mhs">
             <tr>
-                <td>Nama Lengkap</td>
-                <td>: {{ $nama }}</td>
+                <td class="label">Nama</td>
+                <td class="titik-dua">:</td>
+                <td><b>{{ strtoupper($nama ?? $peminjaman->user->name ?? 'EVAN RADITYA RAMADHAN') }}</b></td>
             </tr>
             <tr>
-                <td>NIM</td>
-                <td>: {{ $nim }}</td>
+                <td class="label">NIM</td>
+                <td class="titik-dua">:</td>
+                <td>{{ $nim ?? $peminjaman->nim ?? '22020016' }}</td>
             </tr>
             <tr>
-                <td>Program Studi</td>
-                <td>: Informatika</td>
+                <td class="label">Jurusan</td>
+                <td class="titik-dua">:</td>
+                <td>{{ strtoupper($jurusan ?? $peminjaman->jurusan ?? 'TEKNIK INDUSTRI') }}</td>
             </tr>
             <tr>
-                <td>Status Peminjaman</td>
-                <td>: <b>TIDAK ADA TANGGUNGAN (BEBAS LAB)</b></td>
+                <td class="label">Judul Skripsi</td>
+                <td class="titik-dua">:</td>
+                <td>{{ strtoupper($judul_skripsi ?? $peminjaman->judul_skripsi ?? 'PENGUKURAN BEBAN KERJA DIVISI KASIR DAN PRAMUNIAGA DENGAN METODE NASA-TLX DAN RSME (STUDI KASUS: PAMELLA 3 YOGYAKARTA)') }}</td>
             </tr>
         </table>
 
-        <p>Telah mengembalikan seluruh peralatan dan inventaris laboratorium yang dipinjam. Surat keterangan ini diberikan sebagai syarat untuk keperluan Pendaftaran Wisuda / Sidang Tugas Akhir.</p>
-        <p>Demikian surat keterangan ini dibuat agar dapat dipergunakan sebagaimana mestinya.</p>
+        <p>Semoga surat ini dapat memenuhi keperluan bagi yang bersangkutan.</p>
     </div>
 
     <!-- BAGIAN TANDA TANGAN -->
     <div class="ttd-container">
         <div class="ttd-box">
             <p>Yogyakarta, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
-            <p>Kepala Laboratorium ITDA,</p>
+            <br>
+            <p>Mengetahui,</p>
+            <p>Kepala Pusat Laboratorium Terpadu</p>
             
-            <!-- Ruang untuk Tanda Tangan Asli -->
-            <div class="nama-terang">
-                ( NAMA DOSEN KEPALA LAB )
+            <div class="nama-pejabat">
+                Riani Nurdin, S.T. M.Sc.
             </div>
-            <p>NIDN. .....................................</p>
+            <p>NIDN: 197510272005012001</p>
         </div>
     </div>
 

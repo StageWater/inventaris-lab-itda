@@ -29,7 +29,7 @@ class PeminjamanController extends Controller
     {
         $query = $this->query();
 
-if ($katakunci = $request->katakunci) {
+        if ($katakunci = $request->katakunci) {
             $query->where(function ($q) use ($katakunci) {
                 $q->where('nama_peminjam', 'like', "%$katakunci%")
                     ->orWhere('nim', 'like', "%$katakunci%")
@@ -85,17 +85,13 @@ if ($katakunci = $request->katakunci) {
             'tanggal_batas' => 'nullable|date|after_or_equal:tanggal_pinjam'
         ]);
 
-        // Transaksi + lock baris: dua klik "Pinjam" bersamaan tidak bisa
-        // meminjamkan barang yang sama (anti double-book).
         return DB::transaction(function () use ($request) {
             $barang = Barang::where('id', $request->barang_id)->lockForUpdate()->firstOrFail();
 
-            // RBAC: Admin Ruangan tidak boleh meminjamkan barang ruangan lain
             if (Auth::user()->ruangan_id != null && $barang->ruangan_id != Auth::user()->ruangan_id) {
                 abort(403, 'Anda hanya dapat meminjamkan barang di ruangan Anda.');
             }
 
-            // Anti-double: barang yang sudah "Dipinjam" tidak boleh dipinjam lagi
             if ($barang->status !== 'Tersedia') {
                 return back()->with('error', 'Barang tersebut sedang dipinjam oleh pihak lain.');
             }
@@ -142,12 +138,11 @@ if ($katakunci = $request->katakunci) {
     {
         $peminjaman = $this->query()->findOrFail($id);
 
-        // Jika masih dipinjam, bebaskan barangnya dulu
         if ($peminjaman->status_pinjam === 'Dipinjam') {
             Barang::where('id', $peminjaman->barang_id)->update(['status' => 'Tersedia']);
         }
 
-if ($peminjaman->berkas && \Storage::disk('public')->exists($peminjaman->berkas)) {
+        if ($peminjaman->berkas && \Storage::disk('public')->exists($peminjaman->berkas)) {
             \Storage::disk('public')->delete($peminjaman->berkas);
         }
 
@@ -164,12 +159,14 @@ if ($peminjaman->berkas && \Storage::disk('public')->exists($peminjaman->berkas)
         $nim = trim($request->input('nim'));
 
         if ($nim) {
-            $nama = Peminjaman::where('nim', $nim)->orderByDesc('id')->value('nama_peminjam');
+            // Ambil data peminjaman terakhir berdasarkan NIM
+            $peminjaman = Peminjaman::where('nim', $nim)->orderByDesc('id')->first();
 
-            if (!$nama) {
+            if (!$peminjaman) {
                 return back()->with('error', "Gagal! Tidak ditemukan riwayat peminjaman dengan NIM {$nim}.");
             }
 
+            // Cek tanggungan barang
             $tanggungan = Peminjaman::where('nim', $nim)
                 ->where('status_pinjam', 'Dipinjam')
                 ->count();
@@ -178,7 +175,12 @@ if ($peminjaman->berkas && \Storage::disk('public')->exists($peminjaman->berkas)
                 return back()->with('error', "Gagal! Mahasiswa NIM {$nim} masih memiliki {$tanggungan} tanggungan barang yang belum dikembalikan.");
             }
 
-            return view('peminjaman.cetak_surat_pdf', compact('nama', 'nim'));
+            // Ambil inputan dari request (jika dikirim dari form) atau dari data peminjaman/user
+            $nama = $peminjaman->nama_peminjam;
+            $jurusan = $request->input('jurusan') ?? $peminjaman->jurusan ?? 'TEKNIK INDUSTRI';
+            $judul_skripsi = $request->input('judul_skripsi') ?? $peminjaman->judul_skripsi ?? '-';
+
+            return view('peminjaman.cetak_surat_pdf', compact('peminjaman', 'nama', 'nim', 'jurusan', 'judul_skripsi'));
         }
 
         return view('peminjaman.surat');
