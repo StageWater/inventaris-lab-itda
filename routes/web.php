@@ -13,6 +13,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // 2. Master Data
+    Route::get('/barang/import', [App\Http\Controllers\BarangController::class, 'import'])->name('barang.import');
+    Route::post('/barang/import', [App\Http\Controllers\BarangController::class, 'importData'])->name('barang.import.proses');
     Route::resource('ruangan', RuanganController::class);
     Route::resource('barang', App\Http\Controllers\BarangController::class);
     Route::resource('users', App\Http\Controllers\UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);

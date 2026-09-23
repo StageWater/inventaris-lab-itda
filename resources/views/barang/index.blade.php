@@ -11,6 +11,11 @@
             <p class="text-sm text-slate-500 mt-1">Kelola seluruh data barang atau aset yang ada di laboratorium.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
+            @if(Auth::user()->ruangan_id === null)
+            <a href="{{ route('barang.import') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium text-blue-700 bg-white border border-slate-300 hover:bg-slate-50 shadow-sm h-10 px-4 flex-1 sm:flex-none">
+                <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Import Excel
+            </a>
+            @endif
             <a href="{{ route('barang.cetak') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium text-blue-700 bg-white border border-slate-300 hover:bg-slate-50 shadow-sm h-10 px-4 flex-1 sm:flex-none">
                 <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Cetak PDF
             </a>
@@ -30,23 +35,18 @@
             </div>
             @if(Auth::user()->ruangan_id === null)
             <div class="sm:w-56">
-                <select name="ruangan_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                <select name="ruangan_id" onchange="this.form.submit()" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
                     <option value="">-- Semua Ruangan --</option>
                     @foreach($ruangan as $ruang)
                         <option value="{{ $ruang->id }}" {{ request('ruangan_id') == $ruang->id ? 'selected' : '' }}>{{ $ruang->nama_ruangan }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="flex flex-row gap-3">
-                <button type="submit" class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all bg-slate-700 text-white hover:bg-slate-800 h-10 px-4">
-                    <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Filter
-                </button>
-                @if(request('ruangan_id'))
-                <a href="{{ route('barang.index') }}" class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 h-10 px-4">
-                    <i data-lucide="x" class="w-4 h-4 mr-2"></i> Reset
-                </a>
-                @endif
-            </div>
+            @if(request('ruangan_id'))
+            <a href="{{ route('barang.index', array_filter(['katakunci' => request('katakunci')])) }}" class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 h-10 px-4">
+                <i data-lucide="x" class="w-4 h-4 mr-2"></i> Reset
+            </a>
+            @endif
             @endif
         </div>
     </form>
@@ -91,9 +91,11 @@
                     <tr>
                         <th class="px-6 py-4 font-semibold tracking-wider">Kode Barang</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Nama Barang</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider text-center">QR</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Ruangan</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Kondisi</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Status</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Ditambahkan</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
                     </tr>
                 </thead>
@@ -102,6 +104,15 @@
                     <tr class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-6 py-4 font-medium text-blue-950">{{ $item->kode_barang }}</td>
                         <td class="px-6 py-4 min-w-[12rem]">{{ $item->nama_barang }}</td>
+                        <td class="px-6 py-4 text-center">
+                            @if($item->qr_code)
+                                <a href="{{ Storage::url($item->qr_code) }}" target="_blank" title="Buka QR {{ $item->kode_barang }}" class="inline-block">
+                                    <img src="{{ Storage::url($item->qr_code) }}" alt="QR {{ $item->kode_barang }}" class="w-10 h-10 border border-slate-200 rounded">
+                                </a>
+                            @else
+                                <span class="text-xs text-slate-400">-</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-slate-500">{{ $item->ruangan->nama_ruangan ?? 'Ruang ' . $item->ruangan_id }}</td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->kondisi === 'Baik' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200' }}">
@@ -114,6 +125,10 @@
                             @else
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">Dipinjam</span>
                             @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="font-medium text-slate-700">{{ $item->created_at->format('d M Y') }}</div>
+                            <div class="text-xs text-slate-400">{{ $item->created_at->format('H:i') }} WIB</div>
                         </td>
                         <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
                             <a href="{{ route('barang.show', $item->id) }}" class="inline-flex items-center text-slate-600 hover:text-blue-700 font-medium transition-colors">
@@ -133,7 +148,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="8" class="px-6 py-12 text-center text-slate-400">
                             <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
                             <p>Belum ada data barang.</p>
                         </td>
@@ -156,11 +171,20 @@
                     @else
                         <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">{{ $item->status }}</span>
                     @endif
+                    @if($item->qr_code)
+                        <a href="{{ Storage::url($item->qr_code) }}" target="_blank" title="Buka QR {{ $item->kode_barang }}" class="shrink-0">
+                            <img src="{{ Storage::url($item->qr_code) }}" alt="QR" class="w-10 h-10 border border-slate-200 rounded">
+                        </a>
+                    @endif
                 </div>
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 border-t border-slate-100 pt-3">
                     <span>
                         <i data-lucide="door-open" class="w-3.5 h-3.5 inline-block text-slate-400 mr-1"></i>
                         {{ $item->ruangan->nama_ruangan ?? 'Ruang ' . $item->ruangan_id }}
+                    </span>
+                    <span>
+                        <i data-lucide="calendar-clock" class="w-3.5 h-3.5 inline-block text-slate-400 mr-1"></i>
+                        {{ $item->created_at->format('d M Y, H:i') }} WIB
                     </span>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->kondisi === 'Baik' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
                         {{ $item->kondisi }}

@@ -37,7 +37,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'ruangan_id' => ['required'], // Wajib memilih ruangan
+            'ruangan_id' => ['required', 'exists:ruangans,id'], // Harus ruangan yang benar-benar ada
         ]);
 
         $user = User::create([

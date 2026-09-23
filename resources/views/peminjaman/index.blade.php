@@ -20,23 +20,18 @@
         <form method="GET" action="{{ route('peminjaman.index') }}" class="flex flex-col sm:flex-row sm:items-end gap-3">
             <div class="sm:w-72">
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Filter Ruangan</label>
-                <select name="ruangan_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                <select name="ruangan_id" onchange="this.form.submit()" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
                     <option value="">-- Semua Ruangan --</option>
                     @foreach($ruangan as $ruang)
                         <option value="{{ $ruang->id }}" {{ request('ruangan_id') == $ruang->id ? 'selected' : '' }}>{{ $ruang->nama_ruangan }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="flex flex-row gap-3">
-                <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-slate-700 text-white hover:bg-slate-800 h-10 px-5 flex-1 sm:flex-none">
-                    <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Terapkan
-                </button>
-                @if(request('ruangan_id'))
-                <a href="{{ route('peminjaman.index') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 h-10 px-5 flex-1 sm:flex-none">
-                    <i data-lucide="x" class="w-4 h-4 mr-2"></i> Reset
-                </a>
-                @endif
-            </div>
+            @if(request('ruangan_id'))
+            <a href="{{ route('peminjaman.index', array_filter(['katakunci' => request('katakunci')])) }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 h-10 px-5 flex-1 sm:flex-none">
+                <i data-lucide="x" class="w-4 h-4 mr-2"></i> Reset
+            </a>
+            @endif
         </form>
     </div>
     @endif

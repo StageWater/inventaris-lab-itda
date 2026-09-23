@@ -27,7 +27,12 @@ class DashboardController extends Controller
         $barang_dipinjam = (clone $query)->where('status', 'Dipinjam')->count();
         $barang_rusak = (clone $query)->whereIn('kondisi', ['Rusak Ringan', 'Rusak Berat'])->count();
 
-        $logAktivitas = LogAktivitas::with('user')->latest()->take(5)->get();
+        $log = LogAktivitas::with('user');
+        // RBAC: Admin Ruangan hanya melihat aktivitas pengguna di ruangannya sendiri
+        if ($user->ruangan_id != null) {
+            $log->whereHas('user', fn ($q) => $q->where('ruangan_id', $user->ruangan_id));
+        }
+        $logAktivitas = $log->latest()->take(5)->get();
 
         return view('dashboard', compact('total_barang', 'barang_tersedia', 'barang_dipinjam', 'barang_rusak', 'logAktivitas'));
     }

@@ -6,6 +6,7 @@ use App\Models\Barang;
 use App\Models\Peminjaman;
 use App\Models\Ruangan;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -160,6 +161,38 @@ class IntegrityGuardTest extends TestCase
             ->assertOk()
             ->assertSee('Mahasiswa Telat')
             ->assertDontSee('Mahasiswa Tepat');
+    }
+
+    public function test_hari_terlambat_menghitung_jumlah_hari_dengan_benar(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-09-20 09:00:00'));
+
+        $ruangan = Ruangan::create(['kode_ruangan' => 'RPL-08', 'nama_ruangan' => 'Lab H']);
+        $barang = Barang::create([
+            'kode_barang' => 'KMP-007',
+            'nama_barang' => 'Osiloskop',
+            'kategori' => 'Elektronik',
+            'ruangan_id' => $ruangan->id,
+            'status' => 'Dipinjam',
+        ]);
+
+        $telat5 = Peminjaman::create([
+            'barang_id' => $barang->id,
+            'nama_peminjam' => 'Telat Lima Hari',
+            'tanggal_pinjam' => '2026-09-01',
+            'tanggal_batas' => '2026-09-15',
+            'status_pinjam' => 'Dipinjam',
+        ]);
+        $belumTelat = Peminjaman::create([
+            'barang_id' => $barang->id,
+            'nama_peminjam' => 'Belum Telat',
+            'tanggal_pinjam' => '2026-09-01',
+            'tanggal_batas' => '2026-09-25',
+            'status_pinjam' => 'Dipinjam',
+        ]);
+
+        $this->assertSame(5, $telat5->hari_terlambat);
+        $this->assertSame(0, $belumTelat->hari_terlambat);
     }
 
     public function test_registrasi_dan_login_tercatat_di_riwayat_aktivitas(): void

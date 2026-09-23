@@ -41,7 +41,9 @@
                     </div>
                     <p class="text-sm text-slate-500 mt-1">Kode Barang: <strong class="text-slate-700">{{ $barang->kode_barang }}</strong></p>
                     @if($barang->qr_code)
-                        <p class="text-xs text-slate-400 mt-1">QR: {{ $barang->qr_code }}</p>
+                        <a href="{{ Storage::url($barang->qr_code) }}" target="_blank" title="Buka QR" class="inline-block">
+                            <img src="{{ Storage::url($barang->qr_code) }}" alt="QR {{ $barang->kode_barang }}" class="w-32 h-32">
+                        </a>
                     @endif
                     <div class="flex flex-wrap gap-2 mt-4">
                         <a href="{{ route('barang.edit', $barang->id) }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold text-blue-700 bg-white border border-blue-300 hover:bg-blue-50 shadow-sm h-9 px-4 transition-colors">

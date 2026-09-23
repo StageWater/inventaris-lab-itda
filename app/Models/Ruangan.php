@@ -13,4 +13,9 @@ public function barangs(): HasMany
 {
     return $this->hasMany(Barang::class);
 }
+
+public function users(): HasMany
+{
+    return $this->hasMany(User::class);
+}
 }

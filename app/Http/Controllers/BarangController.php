@@ -49,7 +49,8 @@ if ($status = $request->status) {
         // Daftar ruangan untuk dropdown filter (hanya untuk Super Admin)
         $ruangan = Auth::user()->ruangan_id === null ? Ruangan::orderBy('nama_ruangan')->get() : collect();
 
-        $barang = $query->orderBy('nama_barang')->paginate(15)->withQueryString();
+        // Barang terbaru tampil paling atas
+        $barang = $query->orderByDesc('id')->paginate(15)->withQueryString();
         return view('barang.index', compact('barang', 'ruangan'));
     }
 
@@ -86,7 +87,8 @@ if ($status = $request->status) {
             $data['foto'] = $request->file('foto')->store('foto-barang', 'public');
         }
 
-        Barang::create($data);
+        $barang = Barang::create($data);
+        $barang->generateQrCode();
         LogAktivitas::catat('Tambah Barang', "Barang {$data['kode_barang']} - {$data['nama_barang']} ditambahkan.");
         return redirect()->route('barang.index')->with('success', 'Barang berhasil ditambahkan.');
     }
@@ -151,6 +153,37 @@ if ($status = $request->status) {
         LogAktivitas::catat('Hapus Barang', "Barang {$barang->kode_barang} - {$barang->nama_barang} dihapus.");
         $barang->delete();
         return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus.');
+    }
+
+    public function import()
+    {
+        if (Auth::user()->ruangan_id !== null) {
+            abort(403, 'Hanya Super Admin yang bisa mengimport data.');
+        }
+        return view('barang.import');
+    }
+
+    public function importData(Request $request)
+    {
+        if (Auth::user()->ruangan_id !== null) {
+            abort(403, 'Hanya Super Admin yang bisa mengimport data.');
+        }
+
+        $request->validate([
+            'file' => 'required|file|mimes:xls,xlsx,csv',
+        ], [
+            'file.required' => 'Pilih file Excel terlebih dahulu.',
+            'file.mimes' => 'File harus berformat .xls atau .xlsx.',
+        ]);
+
+        try {
+            $result = (new \App\Services\ImportBarangService)->import($request->file('file')->getRealPath());
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal mengimport file: ' . $e->getMessage());
+        }
+
+        LogAktivitas::catat('Import Barang', "Import selesai: {$result['ruangan']} ruangan & {$result['barang']} barang.");
+        return redirect()->route('barang.index')->with('success', "Import berhasil: {$result['ruangan']} ruangan baru & {$result['barang']} barang.");
     }
 
     public function cetak_pdf()

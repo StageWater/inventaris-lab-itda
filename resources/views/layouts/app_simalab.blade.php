@@ -4,13 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'SIMALAB ITDA')</title>
+    <link rel="icon" href="{{ asset('logo-itda.png') }}" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
     </script>
     <style>
+        html.dark body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        html.dark .bg-white { background-color: #1e293b !important; }
+        html.dark .bg-slate-50, html.dark .bg-slate-50\/50, html.dark .hover\:bg-slate-50:hover { background-color: #0f172a !important; }
+        html.dark .bg-slate-100 { background-color: #1e293b !important; }
+        html.dark .bg-slate-200 { background-color: #334155 !important; }
+        html.dark .border-slate-100 { border-color: #334155 !important; }
+        html.dark .border-slate-200, html.dark .border-slate-300 { border-color: #334155 !important; }
+        html.dark .divide-slate-100 > * + *, html.dark .divide-slate-200 > * + *, html.dark .divide-slate-50 > * + * { border-color: #334155 !important; }
+        html.dark .text-slate-900, html.dark .text-slate-800 { color: #f1f5f9 !important; }
+        html.dark .text-slate-700, html.dark .text-blue-950 { color: #e2e8f0 !important; }
+        html.dark .text-slate-600, html.dark .text-slate-500, html.dark .text-slate-400, html.dark .text-slate-300 { color: #cbd5e1 !important; }
+        html.dark body, html.dark .text-slate-900 { color: #e2e8f0 !important; }
+        html.dark .text-blue-700, html.dark .text-blue-800 { color: #93c5fd !important; }
+        html.dark .text-blue-200, html.dark .text-blue-300, html.dark .text-blue-400, html.dark .text-blue-500, html.dark .text-blue-600 { color: #93c5fd !important; }
+        html.dark input, html.dark select, html.dark textarea {
+            color: #e2e8f0 !important;
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+            caret-color: #93c5fd;
+        }
+        html.dark input:-webkit-autofill, html.dark select:-webkit-autofill, html.dark textarea:-webkit-autofill {
+            -webkit-text-fill-color: #e2e8f0;
+            -webkit-box-shadow: 0 0 0 1000px #0f172a inset;
+        }
+        html.dark ::placeholder { color: #64748b !important; }
+        html.dark .bg-emerald-50 { background-color: #064e3b !important; }
+        html.dark .bg-emerald-100 { background-color: #064e3b !important; }
+        html.dark .text-emerald-600, html.dark .text-emerald-700 { color: #6ee7b7 !important; }
+        html.dark .border-emerald-200 { border-color: #065f46 !important; }
+        html.dark .bg-amber-50, html.dark .bg-amber-100 { background-color: #451a03 !important; }
+        html.dark .text-amber-700 { color: #fcd34d !important; }
+        html.dark .border-amber-200 { border-color: #92400e !important; }
+        html.dark .bg-orange-100 { background-color: #431407 !important; }
+        html.dark .text-orange-700 { color: #fdba74 !important; }
+        html.dark .border-orange-200 { border-color: #7c2d12 !important; }
+        html.dark .bg-rose-50 { background-color: #4c0519 !important; }
+        html.dark .text-rose-600, html.dark .text-rose-700 { color: #fda4af !important; }
+        html.dark .border-rose-100, html.dark .border-rose-200, html.dark .border-rose-300 { border-color: #881337 !important; }
+        html.dark .bg-blue-50 { background-color: #1e3a5f !important; }
+        html.dark .bg-blue-100 { background-color: #1e3a5f !important; }
+        html.dark .border-blue-100, html.dark .border-blue-200 { border-color: #1e40af !important; }
+        html.dark .bg-slate-700 { background-color: #334155 !important; }
+        html.dark .hover\:bg-white:hover { background-color: #1e293b !important; }
+        html.dark .hover\:bg-slate-50:hover, html.dark .hover\:bg-slate-100:hover { background-color: #334155 !important; }
+        html.dark .bg-slate-900\/60 { background-color: rgb(2 6 23 / 0.75) !important; }
         .anim-reveal { opacity: 0; transform: translateY(16px); transition: opacity .45s ease, transform .45s ease; }
         .anim-reveal.is-visible { opacity: 1; transform: translateY(0); }
         .anim-reveal-fade { opacity: 0; transition: opacity .45s ease; }
@@ -119,8 +165,14 @@
                 </nav>
                 <h1 class="text-base sm:text-lg font-semibold text-slate-800 leading-tight truncate">@yield('header', 'Dashboard')</h1>
             </div>
-            <div class="ml-auto shrink-0">
-                @yield('header-actions')
+            <div class="ml-auto shrink-0 flex items-center gap-3">
+                <button id="theme-toggle" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Ganti tema" title="Ganti tema">
+                    <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5"></i>
+                    <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5 hidden"></i>
+                </button>
+                <div>
+                    @yield('header-actions')
+                </div>
             </div>
         </header>
 
@@ -168,7 +220,26 @@
             const io = new IntersectionObserver(entries => {
                 entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); } });
             }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
-            document.querySelectorAll('.anim-reveal').forEach(el => io.observe(el));
+            document.querySelectorAll('.anim-reveal, .anim-reveal-fade').forEach(el => io.observe(el));
+        }
+
+        const root = document.documentElement;
+        if (localStorage.getItem('simalab-theme') === 'dark' || (!localStorage.getItem('simalab-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            root.classList.add('dark');
+        }
+        const themeBtn = document.getElementById('theme-toggle');
+        if (themeBtn) {
+            const applyTheme = () => {
+                const dark = document.documentElement.classList.contains('dark');
+                document.getElementById('theme-icon-moon').classList.toggle('hidden', dark);
+                document.getElementById('theme-icon-sun').classList.toggle('hidden', !dark);
+            };
+            applyTheme();
+            themeBtn.addEventListener('click', () => {
+                root.classList.toggle('dark');
+                localStorage.setItem('simalab-theme', root.classList.contains('dark') ? 'dark' : 'light');
+                applyTheme();
+            });
         }
 
         lucide.createIcons();

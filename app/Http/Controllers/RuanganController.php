@@ -74,11 +74,17 @@ class RuanganController extends Controller
     public function destroy(string $id)
     {
         $this->authorizeSuperAdmin();
-        $ruangan = Ruangan::withCount('barangs')->findOrFail($id);
+        $ruangan = Ruangan::withCount(['barangs', 'users'])->findOrFail($id);
 
         // Guard: mencegah penghapusan diam-diam semua barang via ON DELETE CASCADE
         if ($ruangan->barangs_count > 0) {
             return back()->with('error', "Gagal! Ruangan {$ruangan->nama_ruangan} masih memiliki {$ruangan->barangs_count} barang. Pindahkan atau hapus barangnya terlebih dahulu.");
+        }
+
+        // Guard: jangan hapus ruangan yang masih punya admin -- tanpa ini FK nullOnDelete
+        // diam-diam menaikkan admin ruangan jadi Super Admin.
+        if ($ruangan->users_count > 0) {
+            return back()->with('error', "Gagal! Ruangan {$ruangan->nama_ruangan} masih memiliki {$ruangan->users_count} pengguna. Pindahkan atau hapus penggunanya terlebih dahulu.");
         }
 
         $ruangan->delete();

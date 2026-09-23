@@ -36,6 +36,6 @@ class Peminjaman extends Model
 
     public function getHariTerlambatAttribute(): int
     {
-        return max(0, (int) now()->startOfDay()->diffInDays(Carbon::parse($this->tanggal_batas), false));
+        return max(0, (int) Carbon::parse($this->tanggal_batas)->diffInDays(now()->startOfDay(), false));
     }
 }

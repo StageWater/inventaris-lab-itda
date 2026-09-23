@@ -9,6 +9,7 @@ use App\Models\Ruangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PeminjamanController extends Controller
 {
@@ -84,37 +85,41 @@ if ($katakunci = $request->katakunci) {
             'tanggal_batas' => 'nullable|date|after_or_equal:tanggal_pinjam'
         ]);
 
-        $barang = Barang::findOrFail($request->barang_id);
+        // Transaksi + lock baris: dua klik "Pinjam" bersamaan tidak bisa
+        // meminjamkan barang yang sama (anti double-book).
+        return DB::transaction(function () use ($request) {
+            $barang = Barang::where('id', $request->barang_id)->lockForUpdate()->firstOrFail();
 
-        // RBAC: Admin Ruangan tidak boleh meminjamkan barang ruangan lain
-        if (Auth::user()->ruangan_id != null && $barang->ruangan_id != Auth::user()->ruangan_id) {
-            abort(403, 'Anda hanya dapat meminjamkan barang di ruangan Anda.');
-        }
+            // RBAC: Admin Ruangan tidak boleh meminjamkan barang ruangan lain
+            if (Auth::user()->ruangan_id != null && $barang->ruangan_id != Auth::user()->ruangan_id) {
+                abort(403, 'Anda hanya dapat meminjamkan barang di ruangan Anda.');
+            }
 
-        // Anti-double: barang yang sudah "Dipinjam" tidak boleh dipinjam lagi
-        if ($barang->status !== 'Tersedia') {
-            return back()->with('error', 'Barang tersebut sedang dipinjam oleh pihak lain.');
-        }
+            // Anti-double: barang yang sudah "Dipinjam" tidak boleh dipinjam lagi
+            if ($barang->status !== 'Tersedia') {
+                return back()->with('error', 'Barang tersebut sedang dipinjam oleh pihak lain.');
+            }
 
-        $data = [
-            'nama_peminjam' => $request->nama_peminjam,
-            'nim' => $request->nim,
-            'barang_id' => $barang->id,
-            'tanggal_pinjam' => $request->tanggal_pinjam,
-            'tanggal_pengembalian' => $request->tanggal_pengembalian,
-            'tanggal_batas' => $request->tanggal_batas ?? Carbon::parse($request->tanggal_pinjam)->addDays(7)->toDateString(),
-            'status_pinjam' => 'Dipinjam'
-        ];
+            $data = [
+                'nama_peminjam' => $request->nama_peminjam,
+                'nim' => $request->nim,
+                'barang_id' => $barang->id,
+                'tanggal_pinjam' => $request->tanggal_pinjam,
+                'tanggal_pengembalian' => $request->tanggal_pengembalian,
+                'tanggal_batas' => $request->tanggal_batas ?? Carbon::parse($request->tanggal_pinjam)->addDays(7)->toDateString(),
+                'status_pinjam' => 'Dipinjam'
+            ];
 
-        if ($request->hasFile('berkas')) {
-            $data['berkas'] = $request->file('berkas')->store('berkas-peminjaman', 'public');
-        }
+            if ($request->hasFile('berkas')) {
+                $data['berkas'] = $request->file('berkas')->store('berkas-peminjaman', 'public');
+            }
 
-        Peminjaman::create($data);
+            Peminjaman::create($data);
 
-        $barang->update(['status' => 'Dipinjam']);
-        LogAktivitas::catat('Catat Peminjaman', $request->nama_peminjam . ' (' . ($request->nim ?? '-') . ') meminjam ' . $barang->kode_barang . ' - ' . $barang->nama_barang . '.');
-        return redirect()->route('peminjaman.index')->with('success', 'Peminjaman berhasil dicatat.');
+            $barang->update(['status' => 'Dipinjam']);
+            LogAktivitas::catat('Catat Peminjaman', $request->nama_peminjam . ' (' . ($request->nim ?? '-') . ') meminjam ' . $barang->kode_barang . ' - ' . $barang->nama_barang . '.');
+            return redirect()->route('peminjaman.index')->with('success', 'Peminjaman berhasil dicatat.');
+        });
     }
 
     public function kembalikan($id)
@@ -127,7 +132,7 @@ if ($katakunci = $request->katakunci) {
                 'tanggal_kembali' => now()->toDateString(),
             ]);
             Barang::where('id', $peminjaman->barang_id)->update(['status' => 'Tersedia']);
-            LogAktivitas::catat('Pengembalian Barang', 'Barang ' . ($peminjaman->barang->nama_barang ?? '#') . $peminjaman->barang_id . ' dikembalikan oleh ' . $peminjaman->nama_peminjam . '.');
+            LogAktivitas::catat('Pengembalian Barang', 'Barang ' . ($peminjaman->barang->kode_barang ?? '#' . $peminjaman->barang_id) . ' - ' . ($peminjaman->barang->nama_barang ?? '-') . ' dikembalikan oleh ' . $peminjaman->nama_peminjam . '.');
         }
 
         return redirect()->route('peminjaman.index')->with('success', 'Barang berhasil dikembalikan.');
