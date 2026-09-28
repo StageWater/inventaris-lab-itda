@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class RuanganController extends Controller
 {
@@ -80,7 +79,7 @@ class RuanganController extends Controller
         // setengah terisi: akun hanya dibuat untuk ruangan yang datanya diisi.
         $admin = array_filter(
             $request->input('admin', []),
-            fn ($row) => filled($row['nama'] ?? null) || filled($row['email'] ?? null)
+            fn ($row) => filled($row['nama'] ?? null) || filled($row['email'] ?? null) || filled($row['password'] ?? null)
         );
         $request->merge(['admin' => $admin]);
 
@@ -91,12 +90,19 @@ class RuanganController extends Controller
             // Aturan unique biasa hanya mengecek isi database, jadi duplikat
             // sebaris akan lolos validasi lalu menggagalkan constraint DB.
             'admin.*.email' => ['required', 'email', 'max:255', 'distinct', 'unique:users,email'],
+            // Password diketik Super Admin, bukan di-random. String acak
+            // (Str::password) susah dibaca dan sering salah salin, sedangkan
+            // Super Admin berada di ruangan yang sama dan bisa membacanya.
+            // Lupa? tinggal reset dari menu Kelola Pengguna.
+            'admin.*.password' => ['required', 'string', 'min:8'],
         ], [
             'admin.*.nama.required' => 'Isi nama lengkap adminnya.',
             'admin.*.email.required' => 'Isi email adminnya.',
             'admin.*.email.email' => 'Format email tidak valid.',
             'admin.*.email.distinct' => 'Email yang sama tidak boleh dipakai di dua baris.',
             'admin.*.email.unique' => 'Email itu sudah dipakai akun lain.',
+            'admin.*.password.required' => 'Isi password untuk admin ini.',
+            'admin.*.password.min' => 'Password minimal 8 karakter.',
         ]);
 
         $baru = [];
@@ -111,33 +117,25 @@ class RuanganController extends Controller
                     continue;
                 }
 
-                // Password di-generate, bukan diketik: 28 lab x password unik
-                // yang harus dikarang manual adalah cara pasti salah salin.
-                // Ditampilkan sekali di halaman berikutnya, lalu tidak disimpan lagi.
-                $sandi = Str::password(10);
-
                 User::create([
                     'name' => $row['nama'],
                     'email' => $row['email'],
-                    'password' => Hash::make($sandi),
+                    'password' => Hash::make($row['password']),
                     'ruangan_id' => $ruangan->id,
                 ]);
 
-                $baru[] = [
-                    'nama' => $row['nama'],
-                    'email' => $row['email'],
-                    'ruangan' => $ruangan->nama_ruangan,
-                    'sandi' => $sandi,
-                ];
+                $baru[] = $ruangan->nama_ruangan;
             }
         });
 
-        foreach ($baru as $a) {
-            LogAktivitas::catat('Tambah Pengguna', "Pengguna {$a['nama']} ({$a['email']}) ditambahkan sebagai admin {$a['ruangan']}.");
+        foreach ($baru as $namaRuangan) {
+            LogAktivitas::catat('Tambah Pengguna', "Admin untuk ruangan {$namaRuangan} ditambahkan.");
         }
 
+        // Ruangan yang barusan diisi admin hilang dari form ini, jadi daftar
+        // ini sekaligus jadi konfirmasi hasil. Tidak ada password yang perlu
+        // disimpan di session.
         return redirect()->route('ruangan.admin.form')
-            ->with('admin_baru', $baru)
             ->with('success', count($baru).' akun admin ruangan berhasil dibuat.');
     }
 

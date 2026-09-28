@@ -6,6 +6,7 @@ use App\Models\LogAktivitas;
 use App\Models\Ruangan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class RoleSecurityTest extends TestCase
@@ -129,10 +130,10 @@ class RoleSecurityTest extends TestCase
 
         $this->actingAs($super)->post('/ruangan/tambah-admin', [
             'admin' => [
-                $a->id => ['nama' => 'Admin Lab Enam', 'email' => 'enam@example.com'],
-                $b->id => ['nama' => 'Admin Lab Tujuh', 'email' => 'tujuh@example.com'],
+                $a->id => ['nama' => 'Admin Lab Enam', 'email' => 'enam@example.com', 'password' => 'EnamSekali'],
+                $b->id => ['nama' => 'Admin Lab Tujuh', 'email' => 'tujuh@example.com', 'password' => 'TujuhSekali'],
                 // dikosongkan -> harus dilewati, bukan ditolak
-                $c->id => ['nama' => '', 'email' => ''],
+                $c->id => ['nama' => '', 'email' => '', 'password' => ''],
             ],
         ])->assertSessionHasNoErrors();
 
@@ -140,10 +141,39 @@ class RoleSecurityTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'tujuh@example.com', 'ruangan_id' => $b->id]);
         $this->assertDatabaseMissing('users', ['ruangan_id' => $c->id]);
 
+        // password yang diketik Super Admin harus bisa dipakai login
+        $this->assertTrue(Hash::check('EnamSekali', User::where('email', 'enam@example.com')->first()->password));
+
         $this->assertDatabaseHas('log_aktivitases', [
             'aksi' => 'Tambah Pengguna',
-            'deskripsi' => 'Pengguna Admin Lab Enam (enam@example.com) ditambahkan sebagai admin Lab 6.',
+            'deskripsi' => 'Admin untuk ruangan Lab 6 ditambahkan.',
         ]);
+    }
+
+    public function test_password_baris_yang_disi_set_bukan_dilewati(): void
+    {
+        $a = Ruangan::create(['kode_ruangan' => 'RPL-16', 'nama_ruangan' => 'Lab Enam Belas']);
+
+        $this->actingAs($this->makeUser(null))
+            ->post('/ruangan/tambah-admin', [
+                'admin' => [$a->id => ['nama' => 'Admin', 'email' => 'baru@example.com', 'password' => '']],
+            ])
+            ->assertSessionHasErrors("admin.{$a->id}.password");
+
+        $this->assertDatabaseMissing('users', ['email' => 'baru@example.com']);
+    }
+
+    public function test_password_pendek_ditolak(): void
+    {
+        $a = Ruangan::create(['kode_ruangan' => 'RPL-17', 'nama_ruangan' => 'Lab Tujuh Belas']);
+
+        $this->actingAs($this->makeUser(null))
+            ->post('/ruangan/tambah-admin', [
+                'admin' => [$a->id => ['nama' => 'Admin', 'email' => 'pendek@example.com', 'password' => '1234567']],
+            ])
+            ->assertSessionHasErrors("admin.{$a->id}.password");
+
+        $this->assertDatabaseMissing('users', ['email' => 'pendek@example.com']);
     }
 
     public function test_form_tambah_admin_hanya_menampilkan_ruangan_yang_belum_punya_admin(): void
@@ -167,7 +197,7 @@ class RoleSecurityTest extends TestCase
 
         $this->actingAs($this->makeUser(null))
             ->post('/ruangan/tambah-admin', [
-                'admin' => [$baru->id => ['nama' => 'Duplikat', 'email' => $pemilik->email]],
+                'admin' => [$baru->id => ['nama' => 'Duplikat', 'email' => $pemilik->email, 'password' => 'DuplikatSandi']],
             ])
             ->assertSessionHasErrors("admin.{$baru->id}.email");
 
@@ -182,8 +212,8 @@ class RoleSecurityTest extends TestCase
         $this->actingAs($this->makeUser(null))
             ->post('/ruangan/tambah-admin', [
                 'admin' => [
-                    $a->id => ['nama' => 'Sama', 'email' => 'sama@example.com'],
-                    $b->id => ['nama' => 'Sama', 'email' => 'sama@example.com'],
+                    $a->id => ['nama' => 'Sama', 'email' => 'sama@example.com', 'password' => 'SamaSekali'],
+                    $b->id => ['nama' => 'Sama', 'email' => 'sama@example.com', 'password' => 'SamaSekali'],
                 ],
             ])
             ->assertSessionHasErrors();
@@ -199,7 +229,7 @@ class RoleSecurityTest extends TestCase
 
         $this->actingAs($this->makeUser(null))
             ->post('/ruangan/tambah-admin', [
-                'admin' => [$ruangan->id => ['nama' => 'Admin Kedua', 'email' => 'kedua@example.com']],
+                'admin' => [$ruangan->id => ['nama' => 'Admin Kedua', 'email' => 'kedua@example.com', 'password' => 'KeduaSekali']],
             ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseMissing('users', ['email' => 'kedua@example.com']);
