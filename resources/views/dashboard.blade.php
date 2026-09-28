@@ -1,7 +1,7 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Dashboard | SIMALAB ITDA')
-@section('header', 'Ringkasan Sistem')
+@section('header', 'Dashboard')
 @section('activeMenu', 'dashboard')
 
 @section('content')
@@ -117,7 +117,7 @@
                 <a href="{{ route('users.create') }}" class="flex items-center px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-colors">
                     <i data-lucide="user-plus" class="w-4 h-4 mr-3 text-slate-400"></i> Tambah Pengguna
                 </a>
-                <a href="{{ route('surat.bebas.lab') }}" class="flex items-center px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                <a href="{{ route('permohonan.index') }}" class="flex items-center px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-colors">
                     <i data-lucide="file-check" class="w-4 h-4 mr-3 text-slate-400"></i> Surat Bebas Lab
                 </a>
                 @endif

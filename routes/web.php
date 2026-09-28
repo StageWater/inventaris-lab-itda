@@ -5,6 +5,26 @@ use App\Http\Controllers\RuanganController;
 use App\Http\Controllers\ProfileController; // Tambahan untuk memanggil Profile
 
 // ----------------------------------------------------
+// RUTE PUBLIK: Pengajuan Surat Bebas Lab oleh Mahasiswa (tanpa login)
+// throttle:3,1 = maksimal 3 pengiriman per menit per IP. Tanpa ini form publik
+// terbuka untuk spam dan tiap spam meninggalkan baris log anonymously (user_id NULL).
+// ponytail: throttle per IP, bukan per NIM. CAPTCHA atau verifikasi email baru perlu
+// kalau form ini dibuka ke internet publik, bukan hanya jaringan kampus.
+// throttle:10,1 untuk halaman cek status -- lebih longgar karena hanya dibaca, dan
+// mahasiswa sah sering salah ketik NIM lalu mengulang.
+// ----------------------------------------------------
+Route::get('/permohonan-bebas-lab', [App\Http\Controllers\PermohonanSuratController::class, 'createPublic'])->name('permohonan.publik');
+Route::post('/permohonan-bebas-lab', [App\Http\Controllers\PermohonanSuratController::class, 'storePublic'])
+    ->middleware('throttle:3,1')
+    ->name('permohonan.publik.store');
+Route::get('/permohonan-bebas-lab/cek', [App\Http\Controllers\PermohonanSuratController::class, 'cekStatus'])
+    ->middleware('throttle:10,1')
+    ->name('permohonan.publik.cek');
+Route::get('/permohonan-bebas-lab/{id}/unduh', [App\Http\Controllers\PermohonanSuratController::class, 'unduh'])
+    ->middleware('throttle:10,1')
+    ->name('permohonan.publik.unduh');
+
+// ----------------------------------------------------
 // SEMUA RUTE DI DALAM GRUP INI DIGEMBOK (WAJIB LOGIN)
 // ----------------------------------------------------
 Route::middleware(['auth'])->group(function () {
@@ -30,14 +50,23 @@ Route::middleware(['auth'])->group(function () {
     
     // 5. Cetak PDF
     Route::get('/cetak-barang', [App\Http\Controllers\BarangController::class, 'cetak_pdf'])->name('barang.cetak');
-    // Rute Cek & Cetak Surat Bebas Lab
-    Route::get('/surat-bebas-lab', [App\Http\Controllers\PeminjamanController::class, 'suratBebasLab'])->name('surat.bebas.lab');
 
     // 6. Info Status Barang (Maintenance / Tersedia)
     Route::put('/barang/{id}/status', [App\Http\Controllers\BarangController::class, 'ubahStatus'])->name('barang.status');
 
     // 7. Riwayat Aktivitas
     Route::get('/log-aktivitas', [App\Http\Controllers\LogAktivitasController::class, 'index'])->name('log.index');
+
+    // 8. Permohonan Surat Bebas Lab (khusus Super Admin, proteksi di controller)
+    Route::resource('admin/permohonan-surat', App\Http\Controllers\PermohonanSuratController::class)
+        ->only(['index', 'edit', 'update', 'destroy'])
+        ->names([
+            'index' => 'permohonan.index',
+            'edit' => 'permohonan.edit',
+            'update' => 'permohonan.update',
+            'destroy' => 'permohonan.destroy',
+        ]);
+    Route::post('/admin/permohonan-surat/{id}/cetak', [App\Http\Controllers\PermohonanSuratController::class, 'cetak'])->name('permohonan.cetak');
 
 });
 

@@ -44,4 +44,59 @@ class RoleSecurityTest extends TestCase
         $this->actingAs($super)->delete("/ruangan/{$ruangan->id}")->assertSessionHas('error');
         $this->assertDatabaseHas('ruangans', ['id' => $ruangan->id]);
     }
+
+    public function test_admin_terakhir_tidak_bisa_dipindah_atau_dihapus(): void
+    {
+        $super = $this->makeUser(null);
+        $ruangan = Ruangan::create(['kode_ruangan' => 'RPL-3', 'nama_ruangan' => 'Lab 3']);
+        $admin = $this->makeUser($ruangan);
+
+        // Dipindah ke Super Admin -> Lab 3 jadi tanpa admin
+        $this->actingAs($super)->put("/users/{$admin->id}", [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'ruangan_id' => '',
+        ])->assertSessionHas('error');
+        $this->assertDatabaseHas('users', ['id' => $admin->id, 'ruangan_id' => $ruangan->id]);
+
+        // Dihapus -> Lab 3 juga jadi tanpa admin
+        $this->actingAs($super)->delete("/users/{$admin->id}")->assertSessionHas('error');
+        $this->assertDatabaseHas('users', ['id' => $admin->id]);
+
+        // Begitu ada admin kedua, admin pertama bebas dipindah
+        $cadangan = $this->makeUser($ruangan);
+        $this->actingAs($super)->put("/users/{$admin->id}", [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'ruangan_id' => '',
+        ])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('users', ['id' => $admin->id, 'ruangan_id' => null]);
+        $this->assertDatabaseHas('users', ['id' => $cadangan->id, 'ruangan_id' => $ruangan->id]);
+    }
+
+    public function test_super_admin_terakhir_tidak_bisa_menurunkan_diri_sendiri(): void
+    {
+        $super = $this->makeUser(null);
+        $ruangan = Ruangan::create(['kode_ruangan' => 'RPL-4', 'nama_ruangan' => 'Lab 4']);
+
+        $this->actingAs($super)->put("/users/{$super->id}", [
+            'name' => $super->name,
+            'email' => $super->email,
+            'ruangan_id' => (string) $ruangan->id,
+        ])->assertSessionHas('error');
+
+        $this->assertDatabaseHas('users', ['id' => $super->id, 'ruangan_id' => null]);
+
+        // Begitu ada super admin kedua, yang pertama bebas diturunkan
+        $cadangan = $this->makeUser(null);
+
+        $this->actingAs($super)->put("/users/{$super->id}", [
+            'name' => $super->name,
+            'email' => $super->email,
+            'ruangan_id' => (string) $ruangan->id,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('users', ['id' => $super->id, 'ruangan_id' => $ruangan->id]);
+        $this->assertDatabaseHas('users', ['id' => $cadangan->id, 'ruangan_id' => null]);
+    }
 }

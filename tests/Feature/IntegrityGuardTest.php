@@ -8,6 +8,7 @@ use App\Models\Ruangan;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class IntegrityGuardTest extends TestCase
@@ -195,19 +196,88 @@ class IntegrityGuardTest extends TestCase
         $this->assertSame(0, $belumTelat->hari_terlambat);
     }
 
-    public function test_registrasi_dan_login_tercatat_di_riwayat_aktivitas(): void
+    public function test_barang_yang_sedang_dipinjam_tidak_bisa_dihapus(): void
+    {
+        $ruangan = Ruangan::create(['kode_ruangan' => 'RPL-09', 'nama_ruangan' => 'Lab I']);
+        $barang = Barang::create([
+            'kode_barang' => 'KMP-009',
+            'nama_barang' => 'Mikroskop',
+            'kategori' => 'Elektronik',
+            'ruangan_id' => $ruangan->id,
+            'status' => 'Dipinjam',
+        ]);
+        $peminjaman = Peminjaman::create([
+            'barang_id' => $barang->id,
+            'nama_peminjam' => 'Mahasiswa Peminjam',
+            'nim' => '6200013',
+            'tanggal_pinjam' => '2026-09-01',
+            'tanggal_batas' => '2026-09-08',
+            'status_pinjam' => 'Dipinjam',
+        ]);
+
+        $this->actingAs($this->superAdmin())
+            ->delete(route('barang.destroy', $barang->id))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('barangs', ['id' => $barang->id]);
+        // riwayat peminjaman harus utuh; kalau ikut terhapus, mahasiswa ini
+        // otomatis lolos cek tanggungan dan bisa mendapat surat bebas lab
+        $this->assertDatabaseHas('peminjamans', [
+            'id' => $peminjaman->id,
+            'status_pinjam' => 'Dipinjam',
+        ]);
+    }
+
+    public function test_barang_yang_sudah_dikembalikan_bisa_dihapus_beserta_berkasnya(): void
+    {
+        Storage::fake('public');
+        $ruangan = Ruangan::create(['kode_ruangan' => 'RPL-10', 'nama_ruangan' => 'Lab J']);
+        Storage::disk('public')->put('qr/kmp-010.svg', '<svg/>');
+        $barang = Barang::create([
+            'kode_barang' => 'KMP-010',
+            'nama_barang' => 'Kamera',
+            'kategori' => 'Elektronik',
+            'ruangan_id' => $ruangan->id,
+            'status' => 'Tersedia',
+            'qr_code' => 'qr/kmp-010.svg',
+        ]);
+
+        $this->actingAs($this->superAdmin())
+            ->delete(route('barang.destroy', $barang->id))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('barangs', ['id' => $barang->id]);
+        Storage::disk('public')->assertMissing('qr/kmp-010.svg');
+    }
+
+    public function test_pembuatan_akun_admin_ruangan_tercatat_di_riwayat_aktivitas(): void
     {
         $ruangan = Ruangan::create(['kode_ruangan' => 'RPL-07', 'nama_ruangan' => 'Lab G']);
 
-        $this->post('/register', [
+        // Satu-satunya cara membuat akun admin sekarang: Super Admin menambahkannya.
+        $this->actingAs($this->superAdmin())->post(route('users.store'), [
             'name' => 'Admin Baru',
             'email' => 'admin@example.com',
             'password' => 'password',
-            'password_confirmation' => 'password',
             'ruangan_id' => $ruangan->id,
+        ])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('log_aktivitases', [
+            'aksi' => 'Tambah Pengguna',
+            'deskripsi' => 'Pengguna Admin Baru (admin@example.com) ditambahkan.',
         ]);
 
-        $this->assertDatabaseHas('log_aktivitases', ['aksi' => 'Registrasi', 'deskripsi' => 'Akun Admin Baru (admin@example.com) terdaftar sebagai Admin Ruangan.']);
+        $this->post('/logout');
+
+        $this->post('/login', [
+            'email' => 'admin@example.com',
+            'password' => 'password',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('log_aktivitases', [
+            'aksi' => 'Login',
+            'deskripsi' => 'Admin Baru masuk ke dalam sistem.',
+        ]);
 
         $this->post('/logout');
         $this->assertDatabaseHas('log_aktivitases', ['aksi' => 'Logout']);

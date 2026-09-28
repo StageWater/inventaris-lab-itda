@@ -1,13 +1,13 @@
 @extends('layouts.app_simalab')
 
-@section('title', 'Transaksi Peminjaman | SIMALAB ITDA')
-@section('header', 'Manajemen Transaksi')
+@section('title', 'Transaksi | SIMALAB ITDA')
+@section('header', 'Transaksi')
 @section('activeMenu', 'peminjaman')
 
 @section('content')
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Riwayat Peminjaman</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Transaksi</h2>
             <p class="text-sm text-slate-500 mt-1">Catat dan pantau sirkulasi peminjaman aset laboratorium.</p>
         </div>
         <a href="{{ route('peminjaman.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">

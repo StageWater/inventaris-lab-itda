@@ -34,5 +34,9 @@
             </div>
             <p class="text-center text-xs text-slate-500 mt-4">© {{ date('Y') }} SIMALAB · Institut Teknologi Dirgantara Adisutjipto</p>
         </div>
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <script>
+            lucide.createIcons();
+        </script>
     </body>
 </html>

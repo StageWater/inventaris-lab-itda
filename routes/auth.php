@@ -7,16 +7,19 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+// Rute register DIHAPUS. Dulu form publik tersedia di /register: cukup pilih
+// ruangan yang ada, tanpa verifikasi email, lalu langsung login sebagai Admin
+// Ruangan itu. Artinya siapa pun yang tahu URL bisa mengubah atau menghapus
+// seluruh inventaris lab pilihannya. Akun admin lab sekarang hanya dibuat Super
+// Admin lewat UserController::store.
+// Kalau pendaftaran self-service benar-benar perlu (mis. lab baru), kembalikan
+// dua rute di bawah + RegisteredUserController, tapi WAJIB accompanied verifikasi
+// email (User implements MustVerifyEmail) atau kode undangan, jangan polos.
+
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
-
-    Route::post('register', [RegisteredUserController::class, 'store']);
-
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 

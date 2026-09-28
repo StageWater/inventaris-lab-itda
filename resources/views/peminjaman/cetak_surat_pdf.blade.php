@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Surat Bebas Lab - {{ $nama ?? ($peminjaman->user->name ?? '') }}</title>
+    <title>Surat Bebas Lab - {{ $nama ?? '' }}</title>
     <style>
         body { 
             font-family: 'Times New Roman', Times, serif; 
@@ -11,8 +11,6 @@
             padding: 20px 40px; 
             color: #000;
         }
-        
-        /* Kop Surat Resmi Sesuai Template */
         .kop-surat { 
             text-align: center; 
             margin-bottom: 5px; 
@@ -86,49 +84,9 @@
             font-weight: bold; 
             margin-top: 80px; 
         }
-
-        /* Tombol Cetak & Kembali */
-        .btn-print { 
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            background: #1d4ed8; 
-            color: white; 
-            border: none; 
-            padding: 12px 20px; 
-            font-size: 14px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-family: sans-serif; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2); 
-        }
-        .btn-print:hover { background: #1e40af; }
-        .btn-back { 
-            position: fixed; 
-            top: 20px; 
-            left: 20px; 
-            background: white; 
-            color: #1e40af; 
-            border: 1px solid #1d4ed8; 
-            padding: 12px 20px; 
-            font-size: 14px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-family: sans-serif; 
-            text-decoration: none; 
-        }
-        .btn-back:hover { background: #eff6ff; }
-
-        @media print {
-            .btn-print, .btn-back { display: none !important; }
-            body { padding: 0; }
-        }
     </style>
 </head>
 <body>
-
-    <a href="{{ route('surat.bebas.lab') }}" class="btn-back">← Cek NIM Lain</a>
-    <button onclick="window.print()" class="btn-print">Cetak Surat</button>
 
     <!-- KOP SURAT -->
     <div class="kop-surat">
@@ -141,7 +99,7 @@
 
     <!-- NOMOR SURAT -->
     <div class="nomor-surat">
-        No: {{ $peminjaman->id ?? '2793' }} /Lab. Terpadu/ITDA/{{ date('Y') }}
+        No: {{ $nomorSurat }}
     </div>
 
     <!-- ISI SURAT -->
@@ -159,22 +117,22 @@
             <tr>
                 <td class="label">Nama</td>
                 <td class="titik-dua">:</td>
-                <td><b>{{ strtoupper($nama ?? $peminjaman->user->name ?? 'EVAN RADITYA RAMADHAN') }}</b></td>
+                <td><b>{{ strtoupper($nama) }}</b></td>
             </tr>
             <tr>
                 <td class="label">NIM</td>
                 <td class="titik-dua">:</td>
-                <td>{{ $nim ?? $peminjaman->nim ?? '22020016' }}</td>
+                <td>{{ $nim }}</td>
             </tr>
             <tr>
                 <td class="label">Jurusan</td>
                 <td class="titik-dua">:</td>
-                <td>{{ strtoupper($jurusan ?? $peminjaman->jurusan ?? 'TEKNIK INDUSTRI') }}</td>
+                <td>{{ $jurusan }}</td>
             </tr>
             <tr>
                 <td class="label">Judul Skripsi</td>
                 <td class="titik-dua">:</td>
-                <td>{{ strtoupper($judul_skripsi ?? $peminjaman->judul_skripsi ?? 'PENGUKURAN BEBAN KERJA DIVISI KASIR DAN PRAMUNIAGA DENGAN METODE NASA-TLX DAN RSME (STUDI KASUS: PAMELLA 3 YOGYAKARTA)') }}</td>
+                <td>{{ $judul_skripsi }}</td>
             </tr>
         </table>
 

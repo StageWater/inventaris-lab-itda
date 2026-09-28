@@ -1,18 +1,18 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Catat Peminjaman | SIMALAB ITDA')
-@section('header', 'Manajemen Transaksi')
+@section('header', 'Transaksi')
 @section('activeMenu', 'peminjaman')
 
 @section('breadcrumbs')
-<a href="{{ route('peminjaman.index') }}" class="hover:text-blue-700 transition-colors font-medium">Manajemen Transaksi</a>
+<a href="{{ route('peminjaman.index') }}" class="hover:text-blue-700 transition-colors font-medium">Transaksi</a>
 <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
 <span class="text-slate-700 font-medium">Tambah</span>
 @endsection
 
 @section('content')
     <a href="{{ route('peminjaman.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Riwayat Peminjaman
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Transaksi
     </a>
 
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl">
@@ -40,9 +40,13 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">NIM (Opsional)</label>
-                    <input type="text" name="nim" value="{{ old('nim') }}" placeholder="Contoh: 621801234"
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">NIM</label>
+                    <input type="text" name="nim" value="{{ old('nim') }}" required placeholder="Contoh: 621801234"
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
+                    <p class="mt-1.5 text-xs text-slate-500">Wajib diisi. NIM dipakai untuk memeriksa tanggungan alat saat mahasiswa mengajukan surat bebas lab.</p>
+                    @error('nim')
+                        <p class="mt-1.5 text-sm text-rose-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>

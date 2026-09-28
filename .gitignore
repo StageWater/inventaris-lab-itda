@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Blob database yang tak sengaja ter-commit
+db_inventaris_lab
+

@@ -18,7 +18,7 @@ class RuanganController extends Controller
     public function index(Request $request)
     {
         $this->authorizeSuperAdmin();
-        $query = Ruangan::withCount('barangs');
+        $query = Ruangan::withCount(['barangs', 'users']);
         if ($katakunci = $request->katakunci) {
             $query->where(function ($q) use ($katakunci) {
                 $q->where('kode_ruangan', 'like', "%$katakunci%")

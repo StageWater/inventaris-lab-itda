@@ -7,7 +7,7 @@
 @section('content')
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Log Aktivitas Sistem</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Riwayat Aktivitas</h2>
             <p class="text-sm text-slate-500 mt-1">Audit jejak perubahan data: siapa, apa, dan kapan.</p>
         </div>
     </div>

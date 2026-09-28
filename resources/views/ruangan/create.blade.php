@@ -1,18 +1,18 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Tambah Ruangan | SIMALAB ITDA')
-@section('header', 'Manajemen Ruangan')
+@section('header', 'Kelola Ruangan')
 @section('activeMenu', 'ruangan')
 
 @section('breadcrumbs')
-<a href="{{ route('ruangan.index') }}" class="hover:text-blue-700 transition-colors font-medium">Manajemen Ruangan</a>
+<a href="{{ route('ruangan.index') }}" class="hover:text-blue-700 transition-colors font-medium">Kelola Ruangan</a>
 <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
 <span class="text-slate-700 font-medium">Tambah</span>
 @endsection
 
 @section('content')
     <a href="{{ route('ruangan.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Daftar Ruangan
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Kelola Ruangan
     </a>
 
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl">

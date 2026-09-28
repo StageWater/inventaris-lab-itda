@@ -1,13 +1,13 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Kelola Ruangan | SIMALAB ITDA')
-@section('header', 'Manajemen Ruangan')
+@section('header', 'Kelola Ruangan')
 @section('activeMenu', 'ruangan')
 
 @section('content')
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Daftar Ruangan</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Kelola Ruangan</h2>
             <p class="text-sm text-slate-500 mt-1">Kelola lokasi laboratorium untuk penempatan aset.</p>
         </div>
         <a href="{{ route('ruangan.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">
@@ -32,6 +32,7 @@
                         <th class="px-6 py-4 font-semibold tracking-wider">Kode Ruangan</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Nama Ruangan</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Jumlah Barang</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider text-center">Admin</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
                     </tr>
                 </thead>
@@ -44,6 +45,17 @@
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                                 {{ $item->barangs_count }} barang
                             </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            @if($item->users_count > 0)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    {{ $item->users_count }} admin
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                    Belum ada admin
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
                             <a href="{{ route('ruangan.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
@@ -60,7 +72,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400">
                             <i data-lucide="door-open" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
                             <p>Belum ada ruangan terdaftar.</p>
                         </td>
@@ -78,9 +90,20 @@
                         <div class="text-sm font-semibold text-blue-950">{{ $item->nama_ruangan }}</div>
                         <div class="text-xs text-slate-500 mt-0.5">{{ $item->kode_ruangan }}</div>
                     </div>
-                    <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                        {{ $item->barangs_count }} barang
-                    </span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                            {{ $item->barangs_count }} barang
+                        </span>
+                        @if($item->users_count > 0)
+                            <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                {{ $item->users_count }} admin
+                            </span>
+                        @else
+                            <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                Belum ada admin
+                            </span>
+                        @endif
+                    </div>
                 </div>
                 <div class="flex items-center gap-5 border-t border-slate-100 pt-3">
                     <a href="{{ route('ruangan.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">

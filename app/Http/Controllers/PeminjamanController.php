@@ -50,13 +50,15 @@ class PeminjamanController extends Controller
                 ->whereDate('tanggal_batas', '<', now()->toDateString());
         }
 
-        if ($request->filled('ruangan_id')) {
+        // Filter ruangan hanya untuk Super Admin; untuk Admin Ruangan, filter ini
+        // bertentangan dengan whereHas di query() sehingga selalu hasil kosong.
+        if (Auth::user()->ruangan_id === null && $request->filled('ruangan_id')) {
             $query->whereHas('barang', function ($q) use ($request) {
                 $q->where('ruangan_id', $request->ruangan_id);
             });
         }
 
-        $ruangan = Ruangan::orderBy('nama_ruangan')->get();
+        $ruangan = Auth::user()->ruangan_id === null ? Ruangan::orderBy('nama_ruangan')->get() : collect();
 
         $peminjaman = $query->orderByDesc('id')->paginate(15)->withQueryString();
         return view('peminjaman.index', compact('peminjaman', 'ruangan'));
@@ -77,7 +79,10 @@ class PeminjamanController extends Controller
     {
         $request->validate([
             'nama_peminjam' => 'required',
-            'nim' => 'nullable|string|max:30',
+            // Wajib, bukan nullable: cek tanggungan surat bebas lab hanya cocok
+            // lewat kolom nim. Peminjaman tanpa NIM tidak akan pernah ketahuan
+            // dan mahasiswa yang sama bisa lolos mendapat surat bebas lab.
+            'nim' => 'required|string|max:30',
             'barang_id' => 'required|exists:barangs,id',
             'tanggal_pinjam' => 'required|date',
             'tanggal_pengembalian' => 'nullable|date',
@@ -149,40 +154,5 @@ class PeminjamanController extends Controller
         LogAktivitas::catat('Hapus Riwayat Peminjaman', 'Riwayat peminjaman ' . $peminjaman->nama_peminjam . ' (' . ($peminjaman->nim ?? '-') . ') dihapus.');
         $peminjaman->delete();
         return redirect()->route('peminjaman.index')->with('success', 'Riwayat peminjaman dihapus.');
-    }
-
-    public function suratBebasLab(Request $request)
-    {
-        // RBAC: hanya Super Admin (ruangan_id null) yang boleh akses
-        abort_if(Auth::user()->ruangan_id !== null, 403, 'Anda tidak memiliki akses.');
-
-        $nim = trim($request->input('nim'));
-
-        if ($nim) {
-            // Ambil data peminjaman terakhir berdasarkan NIM
-            $peminjaman = Peminjaman::where('nim', $nim)->orderByDesc('id')->first();
-
-            if (!$peminjaman) {
-                return back()->with('error', "Gagal! Tidak ditemukan riwayat peminjaman dengan NIM {$nim}.");
-            }
-
-            // Cek tanggungan barang
-            $tanggungan = Peminjaman::where('nim', $nim)
-                ->where('status_pinjam', 'Dipinjam')
-                ->count();
-
-            if ($tanggungan > 0) {
-                return back()->with('error', "Gagal! Mahasiswa NIM {$nim} masih memiliki {$tanggungan} tanggungan barang yang belum dikembalikan.");
-            }
-
-            // Ambil inputan dari request (jika dikirim dari form) atau dari data peminjaman/user
-            $nama = $peminjaman->nama_peminjam;
-            $jurusan = $request->input('jurusan') ?? $peminjaman->jurusan ?? 'TEKNIK INDUSTRI';
-            $judul_skripsi = $request->input('judul_skripsi') ?? $peminjaman->judul_skripsi ?? '-';
-
-            return view('peminjaman.cetak_surat_pdf', compact('peminjaman', 'nama', 'nim', 'jurusan', 'judul_skripsi'));
-        }
-
-        return view('peminjaman.surat');
     }
 }

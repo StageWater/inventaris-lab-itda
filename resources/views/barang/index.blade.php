@@ -1,13 +1,13 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Data Barang | SIMALAB ITDA')
-@section('header', 'Manajemen Data Barang')
+@section('header', 'Data Barang')
 @section('activeMenu', 'barang')
 
 @section('content')
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Daftar Inventaris</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Data Barang</h2>
             <p class="text-sm text-slate-500 mt-1">Kelola seluruh data barang atau aset yang ada di laboratorium.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
@@ -122,6 +122,8 @@
                         <td class="px-6 py-4 text-center">
                             @if($item->status == 'Tersedia')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">Tersedia</span>
+                            @elseif($item->status == 'Maintenance')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">Maintenance</span>
                             @else
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">Dipinjam</span>
                             @endif
@@ -168,6 +170,8 @@
                     </div>
                     @if($item->status == 'Tersedia')
                         <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">{{ $item->status }}</span>
+                    @elseif($item->status == 'Maintenance')
+                        <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">{{ $item->status }}</span>
                     @else
                         <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">{{ $item->status }}</span>
                     @endif

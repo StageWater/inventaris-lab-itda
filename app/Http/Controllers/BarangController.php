@@ -8,6 +8,7 @@ use App\Models\Peminjaman;
 use App\Models\Ruangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class BarangController extends Controller
@@ -65,7 +66,11 @@ if ($status = $request->status) {
     {
         $rules = [
             'kode_barang' => 'required|unique:barangs,kode_barang',
-            'nama_barang' => 'required',
+            // kondisi/kategori kolomnya NOT NULL (kondisi = enum di DB); tanpa
+            // validasi, POST buatan tangan dengan nilai ngawur menggagalkan insert.
+            'nama_barang' => 'required|string|max:255',
+            'kategori' => 'required|string|max:255',
+            'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ];
         if (Auth::user()->ruangan_id === null) {
@@ -114,7 +119,12 @@ if ($status = $request->status) {
     {
         $barang = $this->query()->findOrFail($id);
 
-        $rules = ['kode_barang' => 'required|unique:barangs,kode_barang,' . $id];
+        $rules = [
+            'kode_barang' => 'required|unique:barangs,kode_barang,' . $id,
+            'nama_barang' => 'required|string|max:255',
+            'kategori' => 'required|string|max:255',
+            'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat',
+        ];
         if (Auth::user()->ruangan_id === null) {
             $rules['ruangan_id'] = 'required|exists:ruangans,id';
         }
@@ -150,8 +160,24 @@ if ($status = $request->status) {
     public function destroy(string $id)
     {
         $barang = $this->query()->findOrFail($id);
+
+        // FK peminjaman memakai ON DELETE CASCADE, jadi menghapus barang yang sedang
+        // dipinjam akan ikut menghapus riwayat pinjamannya. Efek yang lebih buruk:
+        // mahasiswa itu otomatis lolos cek tanggungan di PermohonanSuratController
+        // dan bisa mendapat surat bebas lab padahal masih memegang alat.
+        if ($barang->status === 'Dipinjam') {
+            return back()->with('error', "Gagal! {$barang->kode_barang} sedang dipinjam. Kembalikan barang ini terlebih dahulu sebelum dihapus.");
+        }
+
+        $berkas = array_filter([$barang->foto, $barang->qr_code]);
+
         LogAktivitas::catat('Hapus Barang', "Barang {$barang->kode_barang} - {$barang->nama_barang} dihapus.");
         $barang->delete();
+
+        foreach ($berkas as $path) {
+            Storage::disk('public')->delete($path);
+        }
+
         return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus.');
     }
 

@@ -1,18 +1,18 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Tambah Barang | SIMALAB ITDA')
-@section('header', 'Manajemen Data Barang')
+@section('header', 'Data Barang')
 @section('activeMenu', 'barang')
 
 @section('breadcrumbs')
-<a href="{{ route('barang.index') }}" class="hover:text-blue-700 transition-colors font-medium">Manajemen Data Barang</a>
+<a href="{{ route('barang.index') }}" class="hover:text-blue-700 transition-colors font-medium">Data Barang</a>
 <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
 <span class="text-slate-700 font-medium">Tambah</span>
 @endsection
 
 @section('content')
     <a href="{{ route('barang.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Daftar Barang
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Data Barang
     </a>
 
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-3xl">
@@ -46,7 +46,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Kategori</label>
-                        <input type="text" name="kategori" value="{{ old('kategori') }}" placeholder="Contoh: Elektronik"
+                        <input type="text" name="kategori" value="{{ old('kategori') }}" required placeholder="Contoh: Elektronik"
                             class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
                     </div>
                     <div>

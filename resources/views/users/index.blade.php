@@ -1,13 +1,13 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Kelola Pengguna | SIMALAB ITDA')
-@section('header', 'Manajemen Pengguna')
+@section('header', 'Kelola Pengguna')
 @section('activeMenu', 'users')
 
 @section('content')
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Daftar Akun Pengguna</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Kelola Pengguna</h2>
             <p class="text-sm text-slate-500 mt-1">Kelola akun Super Admin dan Admin Ruangan.</p>
         </div>
         <a href="{{ route('users.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">

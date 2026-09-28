@@ -1,18 +1,18 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Edit Pengguna | SIMALAB ITDA')
-@section('header', 'Manajemen Pengguna')
+@section('header', 'Kelola Pengguna')
 @section('activeMenu', 'users')
 
 @section('breadcrumbs')
-<a href="{{ route('users.index') }}" class="hover:text-blue-700 transition-colors font-medium">Manajemen Pengguna</a>
+<a href="{{ route('users.index') }}" class="hover:text-blue-700 transition-colors font-medium">Kelola Pengguna</a>
 <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
 <span class="text-slate-700 font-medium">Edit</span>
 @endsection
 
 @section('content')
     <a href="{{ route('users.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Daftar Pengguna
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Kelola Pengguna
     </a>
 
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl">

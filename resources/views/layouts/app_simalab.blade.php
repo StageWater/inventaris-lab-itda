@@ -117,8 +117,8 @@
             </a>
 
             @if($isSuperAdmin)
-            <a href="{{ route('surat.bebas.lab') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'surat' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="file-check" class="w-4 h-4 mr-3 {{ $activeMenu === 'surat' ? 'text-blue-700' : 'text-slate-400' }}"></i> Surat Bebas Lab
+            <a href="{{ route('permohonan.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'permohonan' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="file-check" class="w-4 h-4 mr-3 {{ $activeMenu === 'permohonan' ? 'text-blue-700' : 'text-slate-400' }}"></i> Surat Bebas Lab
             </a>
             @endif
 

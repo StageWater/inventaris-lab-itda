@@ -1,18 +1,18 @@
 @extends('layouts.app_simalab')
 
 @section('title', 'Detail Barang | SIMALAB ITDA')
-@section('header', 'Manajemen Data Barang')
+@section('header', 'Data Barang')
 @section('activeMenu', 'barang')
 
 @section('breadcrumbs')
-<a href="{{ route('barang.index') }}" class="hover:text-blue-700 transition-colors font-medium">Manajemen Data Barang</a>
+<a href="{{ route('barang.index') }}" class="hover:text-blue-700 transition-colors font-medium">Data Barang</a>
 <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
 <span class="text-slate-700 font-medium truncate">{{ $barang->kode_barang }}</span>
 @endsection
 
 @section('content')
     <a href="{{ route('barang.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Daftar Barang
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Data Barang
     </a>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6" data-reveal-stagger>
