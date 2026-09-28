@@ -15,6 +15,18 @@
         </a>
     </div>
 
+    @if($tanpaAdmin > 0)
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-lg text-sm">
+        <span class="flex items-start">
+            <i data-lucide="user-x" class="w-5 h-5 mt-0.5 mr-2 shrink-0 text-amber-600"></i>
+            <span><strong>{{ $tanpaAdmin }} ruangan</strong> belum punya admin, jadi barangnya hanya bisa dikelola Super Admin.</span>
+        </span>
+        <a href="{{ route('ruangan.admin.form') }}" class="inline-flex items-center justify-center shrink-0 rounded-md text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 shadow-sm h-9 px-4">
+            <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Isi Admin Sekarang
+        </a>
+    </div>
+    @endif
+
     <form method="GET" action="{{ route('ruangan.index') }}" class="mb-4">
         <div class="relative w-full md:max-w-sm">
             <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>

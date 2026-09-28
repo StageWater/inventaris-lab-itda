@@ -35,6 +35,12 @@ Route::middleware(['auth'])->group(function () {
     // 2. Master Data
     Route::get('/barang/import', [App\Http\Controllers\BarangController::class, 'import'])->name('barang.import');
     Route::post('/barang/import', [App\Http\Controllers\BarangController::class, 'importData'])->name('barang.import.proses');
+    // Pengisian admin ruangan sekaligus. Dari 31 ruangan, hanya 3 yang punya
+    // admin; sisanya harus diisi Super Admin. Satu form per lab berarti bolak-balik
+    // 28 kali. Ditaruh sebelum resource 'ruangan' supaya '/ruangan/tambah-admin'
+    // tidak tertangkap sebagai /ruangan/{ruangan} (param, bukan halaman form).
+    Route::get('/ruangan/tambah-admin', [RuanganController::class, 'formTambahAdmin'])->name('ruangan.admin.form');
+    Route::post('/ruangan/tambah-admin', [RuanganController::class, 'storeTambahAdmin'])->name('ruangan.admin.store');
     Route::resource('ruangan', RuanganController::class);
     Route::resource('barang', App\Http\Controllers\BarangController::class);
     Route::resource('users', App\Http\Controllers\UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);

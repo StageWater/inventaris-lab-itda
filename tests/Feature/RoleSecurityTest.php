@@ -99,4 +99,110 @@ class RoleSecurityTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $super->id, 'ruangan_id' => $ruangan->id]);
         $this->assertDatabaseHas('users', ['id' => $cadangan->id, 'ruangan_id' => null]);
     }
+
+    public function test_admin_ruangan_tidak_bisa_membuat_akun_admin_ruangan(): void
+    {
+        $ruangan = Ruangan::create(['kode_ruangan' => 'RPL-5', 'nama_ruangan' => 'Lab 5']);
+        $admin = $this->makeUser($ruangan);
+
+        $this->actingAs($admin)
+            ->get('/ruangan/tambah-admin')
+            ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->post('/ruangan/tambah-admin', [
+                'admin' => [
+                    $ruangan->id => ['nama' => 'Penyusup', 'email' => 'penyusup@example.com'],
+                ],
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('users', ['email' => 'penyusup@example.com']);
+    }
+
+    public function test_beberapa_admin_ruangan_bisa_dibuat_sekali_jalan(): void
+    {
+        $a = Ruangan::create(['kode_ruangan' => 'RPL-6', 'nama_ruangan' => 'Lab 6']);
+        $b = Ruangan::create(['kode_ruangan' => 'RPL-7', 'nama_ruangan' => 'Lab 7']);
+        $c = Ruangan::create(['kode_ruangan' => 'RPL-8', 'nama_ruangan' => 'Lab 8']);
+        $super = $this->makeUser(null);
+
+        $this->actingAs($super)->post('/ruangan/tambah-admin', [
+            'admin' => [
+                $a->id => ['nama' => 'Admin Lab Enam', 'email' => 'enam@example.com'],
+                $b->id => ['nama' => 'Admin Lab Tujuh', 'email' => 'tujuh@example.com'],
+                // dikosongkan -> harus dilewati, bukan ditolak
+                $c->id => ['nama' => '', 'email' => ''],
+            ],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('users', ['email' => 'enam@example.com', 'ruangan_id' => $a->id]);
+        $this->assertDatabaseHas('users', ['email' => 'tujuh@example.com', 'ruangan_id' => $b->id]);
+        $this->assertDatabaseMissing('users', ['ruangan_id' => $c->id]);
+
+        $this->assertDatabaseHas('log_aktivitases', [
+            'aksi' => 'Tambah Pengguna',
+            'deskripsi' => 'Pengguna Admin Lab Enam (enam@example.com) ditambahkan sebagai admin Lab 6.',
+        ]);
+    }
+
+    public function test_form_tambah_admin_hanya_menampilkan_ruangan_yang_belum_punya_admin(): void
+    {
+        $sudahAda = Ruangan::create(['kode_ruangan' => 'RPL-9', 'nama_ruangan' => 'Lab Sembilan']);
+        $this->makeUser($sudahAda);
+        $kosong = Ruangan::create(['kode_ruangan' => 'RPL-10', 'nama_ruangan' => 'Lab Sepuluh']);
+
+        $this->actingAs($this->makeUser(null))
+            ->get('/ruangan/tambah-admin')
+            ->assertOk()
+            ->assertSee('Lab Sepuluh')
+            ->assertDontSee('Lab Sembilan');
+    }
+
+    public function test_email_yang_sudah_dipakai_ditolak_di_form_batch(): void
+    {
+        $sudahAda = Ruangan::create(['kode_ruangan' => 'RPL-11', 'nama_ruangan' => 'Lab Sebelas']);
+        $pemilik = $this->makeUser($sudahAda);
+        $baru = Ruangan::create(['kode_ruangan' => 'RPL-12', 'nama_ruangan' => 'Lab Dua Belas']);
+
+        $this->actingAs($this->makeUser(null))
+            ->post('/ruangan/tambah-admin', [
+                'admin' => [$baru->id => ['nama' => 'Duplikat', 'email' => $pemilik->email]],
+            ])
+            ->assertSessionHasErrors("admin.{$baru->id}.email");
+
+        $this->assertDatabaseCount('users', 2);
+    }
+
+    public function test_email_yang_sama_di_dua_baris_ditolak(): void
+    {
+        $a = Ruangan::create(['kode_ruangan' => 'RPL-13', 'nama_ruangan' => 'Lab Tiga Belas']);
+        $b = Ruangan::create(['kode_ruangan' => 'RPL-14', 'nama_ruangan' => 'Lab Empat Belas']);
+
+        $this->actingAs($this->makeUser(null))
+            ->post('/ruangan/tambah-admin', [
+                'admin' => [
+                    $a->id => ['nama' => 'Sama', 'email' => 'sama@example.com'],
+                    $b->id => ['nama' => 'Sama', 'email' => 'sama@example.com'],
+                ],
+            ])
+            ->assertSessionHasErrors();
+
+        // whole batch ditolak, tidak ada yang tersimpan setengah jalan
+        $this->assertDatabaseMissing('users', ['email' => 'sama@example.com']);
+    }
+
+    public function test_ruangan_yang_sudah_punya_admin_tidak_diberi_admin_kedua_dari_form_batch(): void
+    {
+        $ruangan = Ruangan::create(['kode_ruangan' => 'RPL-15', 'nama_ruangan' => 'Lab Lima Belas']);
+        $lama = $this->makeUser($ruangan);
+
+        $this->actingAs($this->makeUser(null))
+            ->post('/ruangan/tambah-admin', [
+                'admin' => [$ruangan->id => ['nama' => 'Admin Kedua', 'email' => 'kedua@example.com']],
+            ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseMissing('users', ['email' => 'kedua@example.com']);
+        $this->assertDatabaseHas('users', ['id' => $lama->id, 'ruangan_id' => $ruangan->id]);
+    }
 }

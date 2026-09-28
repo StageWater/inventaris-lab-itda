@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\LogAktivitas;
 use App\Models\Ruangan;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class RuanganController extends Controller
 {
@@ -26,7 +30,8 @@ class RuanganController extends Controller
             });
         }
         $ruangan = $query->orderBy('nama_ruangan')->paginate(15)->withQueryString();
-        return view('ruangan.index', compact('ruangan'));
+        $tanpaAdmin = Ruangan::has('users', '<', 1)->count();
+        return view('ruangan.index', compact('ruangan', 'tanpaAdmin'));
     }
 
     public function create()
@@ -54,6 +59,86 @@ class RuanganController extends Controller
         $this->authorizeSuperAdmin();
         $ruangan = Ruangan::findOrFail($id);
         return view('ruangan.edit', compact('ruangan'));
+    }
+
+    public function formTambahAdmin()
+    {
+        $this->authorizeSuperAdmin();
+
+        $ruangan = Ruangan::has('users', '<', 1)
+            ->orderBy('nama_ruangan')
+            ->get(['id', 'kode_ruangan', 'nama_ruangan']);
+
+        return view('ruangan.tambah_admin', compact('ruangan'));
+    }
+
+    public function storeTambahAdmin(Request $request)
+    {
+        $this->authorizeSuperAdmin();
+
+        // Baris yang tidak diisi sama sekali dibuang, jadi form boleh dikirim
+        // setengah terisi: akun hanya dibuat untuk ruangan yang datanya diisi.
+        $admin = array_filter(
+            $request->input('admin', []),
+            fn ($row) => filled($row['nama'] ?? null) || filled($row['email'] ?? null)
+        );
+        $request->merge(['admin' => $admin]);
+
+        $terisi = $request->validate([
+            'admin' => ['array'],
+            'admin.*.nama' => ['required', 'string', 'max:255'],
+            // distinct: menolak email yang sama di dua baris dalam satu request.
+            // Aturan unique biasa hanya mengecek isi database, jadi duplikat
+            // sebaris akan lolos validasi lalu menggagalkan constraint DB.
+            'admin.*.email' => ['required', 'email', 'max:255', 'distinct', 'unique:users,email'],
+        ], [
+            'admin.*.nama.required' => 'Isi nama lengkap adminnya.',
+            'admin.*.email.required' => 'Isi email adminnya.',
+            'admin.*.email.email' => 'Format email tidak valid.',
+            'admin.*.email.distinct' => 'Email yang sama tidak boleh dipakai di dua baris.',
+            'admin.*.email.unique' => 'Email itu sudah dipakai akun lain.',
+        ]);
+
+        $baru = [];
+
+        DB::transaction(function () use ($terisi, &$baru) {
+            foreach ($terisi['admin'] as $ruanganId => $row) {
+                $ruangan = Ruangan::find($ruanganId);
+
+                // Form ini hanya menampilkan ruangan tanpa admin, tapi tetap
+                // dijaga agar tidak pernah membuat admin kedua dari form ini.
+                if (! $ruangan || $ruangan->users()->exists()) {
+                    continue;
+                }
+
+                // Password di-generate, bukan diketik: 28 lab x password unik
+                // yang harus dikarang manual adalah cara pasti salah salin.
+                // Ditampilkan sekali di halaman berikutnya, lalu tidak disimpan lagi.
+                $sandi = Str::password(10);
+
+                User::create([
+                    'name' => $row['nama'],
+                    'email' => $row['email'],
+                    'password' => Hash::make($sandi),
+                    'ruangan_id' => $ruangan->id,
+                ]);
+
+                $baru[] = [
+                    'nama' => $row['nama'],
+                    'email' => $row['email'],
+                    'ruangan' => $ruangan->nama_ruangan,
+                    'sandi' => $sandi,
+                ];
+            }
+        });
+
+        foreach ($baru as $a) {
+            LogAktivitas::catat('Tambah Pengguna', "Pengguna {$a['nama']} ({$a['email']}) ditambahkan sebagai admin {$a['ruangan']}.");
+        }
+
+        return redirect()->route('ruangan.admin.form')
+            ->with('admin_baru', $baru)
+            ->with('success', count($baru).' akun admin ruangan berhasil dibuat.');
     }
 
     public function update(Request $request, string $id)
