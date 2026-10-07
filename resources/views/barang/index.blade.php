@@ -11,7 +11,7 @@
             <p class="text-sm text-slate-500 mt-1">Kelola seluruh data barang atau aset yang ada di laboratorium.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-            @if(Auth::user()->ruangan_id === null)
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isAdminGedung())
             <a href="{{ route('barang.import') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium text-blue-700 bg-white border border-slate-300 hover:bg-slate-50 shadow-sm h-10 px-4 flex-1 sm:flex-none">
                 <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Import Excel
             </a>
@@ -19,9 +19,11 @@
             <a href="{{ route('barang.cetak') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium text-blue-700 bg-white border border-slate-300 hover:bg-slate-50 shadow-sm h-10 px-4 flex-1 sm:flex-none">
                 <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Cetak PDF
             </a>
+            @if(!auth()->user()->isSuperAdmin())
             <a href="{{ route('barang.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">
                 <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Barang
             </a>
+            @endif
         </div>
     </div>
 
@@ -33,11 +35,11 @@
                     class="w-full pl-10 pr-20 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
                 <button type="submit" class="absolute right-1.5 top-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-md">Cari</button>
             </div>
-            @if(Auth::user()->ruangan_id === null)
+            @if(! auth()->user()->isAdminRuangan())
             <div class="sm:w-56">
                 <select name="ruangan_id" onchange="this.form.submit()" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
                     <option value="">-- Semua Ruangan --</option>
-                    @foreach($ruangan as $ruang)
+                    @foreach($ruanganOptions as $ruang)
                         <option value="{{ $ruang->id }}" {{ request('ruangan_id') == $ruang->id ? 'selected' : '' }}>{{ $ruang->nama_ruangan }}</option>
                     @endforeach
                 </select>
@@ -92,11 +94,15 @@
                         <th class="px-6 py-4 font-semibold tracking-wider">Kode Barang</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Nama Barang</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">QR</th>
+                        @if(! auth()->user()->isAdminRuangan())
                         <th class="px-6 py-4 font-semibold tracking-wider">Ruangan</th>
+                        @endif
                         <th class="px-6 py-4 font-semibold tracking-wider">Kondisi</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Status</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Ditambahkan</th>
+                        @if(!auth()->user()->isSuperAdmin())
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100" data-reveal-stagger>
@@ -113,7 +119,9 @@
                                 <span class="text-xs text-slate-400">-</span>
                             @endif
                         </td>
+                        @if(! auth()->user()->isAdminRuangan())
                         <td class="px-6 py-4 text-slate-500">{{ $item->ruangan->nama_ruangan ?? 'Ruang ' . $item->ruangan_id }}</td>
+                        @endif
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->kondisi === 'Baik' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200' }}">
                                 {{ $item->kondisi }}
@@ -136,6 +144,7 @@
                             <a href="{{ route('barang.show', $item->id) }}" class="inline-flex items-center text-slate-600 hover:text-blue-700 font-medium transition-colors">
                                 <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Lihat
                             </a>
+                            @if(!auth()->user()->isSuperAdmin())
                             <a href="{{ route('barang.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
                                 <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
                             </a>
@@ -146,11 +155,12 @@
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
                                 </button>
                             </form>
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="{{ auth()->user()->isAdminRuangan() || auth()->user()->isSuperAdmin() ? 7 : 8 }}" class="px-6 py-12 text-center text-slate-400">
                             <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
                             <p>Belum ada data barang.</p>
                         </td>
@@ -182,10 +192,12 @@
                     @endif
                 </div>
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                    @if(! auth()->user()->isAdminRuangan())
                     <span>
                         <i data-lucide="door-open" class="w-3.5 h-3.5 inline-block text-slate-400 mr-1"></i>
                         {{ $item->ruangan->nama_ruangan ?? 'Ruang ' . $item->ruangan_id }}
                     </span>
+                    @endif
                     <span>
                         <i data-lucide="calendar-clock" class="w-3.5 h-3.5 inline-block text-slate-400 mr-1"></i>
                         {{ $item->created_at->format('d M Y, H:i') }} WIB
@@ -198,6 +210,7 @@
                     <a href="{{ route('barang.show', $item->id) }}" class="inline-flex items-center text-slate-600 hover:text-blue-700 font-medium text-sm transition-colors">
                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Lihat
                     </a>
+                    @if(!auth()->user()->isSuperAdmin())
                     <a href="{{ route('barang.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
                         <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
                     </a>
@@ -208,6 +221,7 @@
                             <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
                         </button>
                     </form>
+                    @endif
                 </div>
             </div>
             @empty

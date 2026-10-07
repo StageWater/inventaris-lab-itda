@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    // RBAC: Hanya Super Admin (ruangan_id NULL) yang boleh mengelola pengguna
-    private function authorizeSuperAdmin()
+    // Super Admin: semua. Admin Gedung: gedungnya saja. Admin Ruangan: ditolak.
+    private function authorizeKelolaUser()
     {
-        abort_if(Auth::user()->ruangan_id !== null, 403, 'Anda tidak memiliki akses untuk mengelola pengguna.');
+        abort_if(Auth::user()->isAdminRuangan(), 403, 'Anda tidak memiliki akses untuk mengelola pengguna.');
     }
 
     // Invarian: setiap ruangan wajib punya minimal satu admin. Tanpa guard ini
@@ -41,8 +41,16 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorizeSuperAdmin();
-        $query = User::with('ruangan');
+        $this->authorizeKelolaUser();
+        $me = Auth::user();
+        $query = User::with(['ruangan', 'gedung']);
+        if ($me->isAdminGedung()) {
+            $ids = $me->ruanganIds();
+            $query->where(function ($q) use ($me, $ids) {
+                $q->where('gedung_id', $me->gedung_id)
+                    ->orWhereIn('ruangan_id', $ids ?: [0]);
+            });
+        }
         if ($katakunci = $request->katakunci) {
             $query->where(function ($q) use ($katakunci) {
                 $q->where('name', 'like', "%$katakunci%")
@@ -55,51 +63,72 @@ class UserController extends Controller
 
     public function create()
     {
-        $this->authorizeSuperAdmin();
-        $ruangan = Ruangan::all();
-        return view('users.create', compact('ruangan'));
+        $this->authorizeKelolaUser();
+        $me = Auth::user();
+        $ruangan = $me->isSuperAdmin() ? Ruangan::all()
+            : Ruangan::where('gedung_id', $me->gedung_id)->get();
+        $gedung = $me->isSuperAdmin() ? \App\Models\Gedung::all() : \App\Models\Gedung::where('id', $me->gedung_id)->get();
+        return view('users.create', compact('ruangan', 'gedung'));
     }
 
     public function store(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeKelolaUser();
+        $me = Auth::user();
 
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
             'ruangan_id' => 'nullable|exists:ruangans,id',
+            'gedung_id' => 'nullable|exists:gedungs,id',
+            'role' => 'nullable|in:Super Admin,Admin Gedung,Admin Ruangan',
         ]);
+
+        $role = $request->role ?: ($request->ruangan_id ? 'Admin Ruangan' : 'Super Admin');
+        if ($me->isAdminGedung()) {
+            $role = 'Admin Ruangan';
+            abort_unless(in_array($request->ruangan_id, $me->ruanganIds()), 403);
+        }
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            // null => Super Admin, angka => Admin Ruangan
+            'role' => $role,
             // ponytail: satu user hanya boleh satu ruangan. Kalau nanti ada satu
             // orang yang memegang 2 ruangan, ganti ke pivot user_ruangan + scope
             // per ruangan; jangan tambah kolom kedua (mis. ruangan_id_2).
+            'gedung_id' => $me->isAdminGedung() ? $me->gedung_id : ($request->gedung_id ?: null),
             'ruangan_id' => $request->ruangan_id ?: null,
         ]);
 
-        LogAktivitas::catat('Tambah Pengguna', "Pengguna {$request->name} ({$request->email}) ditambahkan.");
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil ditambahkan.');
     }
 
     public function edit(string $id)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeKelolaUser();
+        $me = Auth::user();
         $user = User::findOrFail($id);
-        $ruangan = Ruangan::all();
-        return view('users.edit', compact('user', 'ruangan'));
+        abort_if($me->isAdminGedung() && ! in_array($user->ruangan_id, $me->ruanganIds()) && $user->gedung_id !== $me->gedung_id, 403);
+        $ruangan = $me->isSuperAdmin() ? Ruangan::all()
+            : Ruangan::where('gedung_id', $me->gedung_id)->get();
+        $gedung = $me->isSuperAdmin() ? \App\Models\Gedung::all() : \App\Models\Gedung::where('id', $me->gedung_id)->get();
+        return view('users.edit', compact('user', 'ruangan', 'gedung'));
     }
 
     public function update(Request $request, string $id)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeKelolaUser();
 
         $user = User::findOrFail($id);
+        $me = Auth::user();
+        abort_if($me->isAdminGedung() && ! in_array($user->ruangan_id, $me->ruanganIds()) && $user->gedung_id !== $me->gedung_id, 403);
         $ruanganBaru = $request->ruangan_id ?: null;
+        if ($me->isAdminGedung()) {
+            abort_if($ruanganBaru && ! in_array($ruanganBaru, $me->ruanganIds()), 403);
+        }
 
         if ($ruanganBaru !== $user->ruangan_id
             && $error = $this->cekAdminTerakhir($user->ruangan_id, $user->id)) {
@@ -110,9 +139,11 @@ class UserController extends Controller
         // Super Admin terakhir bisa menurunkan dirinya sendiri, dan tidak ada
         // lagi yang bisa mengelola pengguna, ruangan, maupun surat bebas lab --
         // pemulihannya harus lewat edit database.
-        if ($user->ruangan_id === null
-            && $ruanganBaru !== null
-            && !User::whereNull('ruangan_id')->where('id', '!=', $user->id)->exists()) {
+        // Guard Super Admin terakhir: hitung by role, bukan by ruangan null --
+        // Admin Gedung juga ruangan_id null dan ikut kehitung kalau pakai whereNull.
+        if ($user->isSuperAdmin()
+            && ($ruanganBaru !== null || ($request->filled('role') && $request->role !== 'Super Admin'))
+            && !User::where('role', 'Super Admin')->where('id', '!=', $user->id)->exists()) {
             return back()->with('error', 'Gagal! Anda Super Admin terakhir. Tunjuk super admin lain sebelum menurunkan peran Anda.')->withInput();
         }
 
@@ -121,30 +152,43 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|min:6',
             'ruangan_id' => 'nullable|exists:ruangans,id',
+            'gedung_id' => 'nullable|exists:gedungs,id',
+            'role' => 'nullable|in:Super Admin,Admin Gedung,Admin Ruangan',
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
             'ruangan_id' => $ruanganBaru,
+            'gedung_id' => $me->isAdminGedung() ? $me->gedung_id : ($request->gedung_id ?: null),
         ];
+        if ($me->isSuperAdmin() && $request->filled('role')) {
+            $data['role'] = $request->role;
+        } elseif ($ruanganBaru) {
+            $data['role'] = 'Admin Ruangan';
+        }
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
 
         $user->update($data);
-        LogAktivitas::catat('Ubah Pengguna', "Data pengguna {$user->name} ({$user->email}) diperbarui.");
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil diperbarui.');
     }
 
     public function destroy(string $id)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeKelolaUser();
 
         $user = User::findOrFail($id);
+        abort_if(Auth::user()->isAdminGedung() && ! in_array($user->ruangan_id, Auth::user()->ruanganIds()) && $user->gedung_id !== Auth::user()->gedung_id, 403);
         // Cegah menghapus akun sendiri
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Tidak dapat menghapus akun yang sedang digunakan.');
+        }
+        // ponytail: tanpa ini Super Admin terakhir bisa dihapus dan menu
+        // Kelola Gedung/Pengguna tak bisa dibuka siapa pun lagi.
+        if ($user->isSuperAdmin() && !User::where('role', 'Super Admin')->where('id', '!=', $user->id)->exists()) {
+            return back()->with('error', 'Gagal! Ini Super Admin terakhir. Tunjuk super admin lain sebelum menghapusnya.');
         }
 
         if ($error = $this->cekAdminTerakhir($user->ruangan_id, $user->id)) {
@@ -152,7 +196,6 @@ class UserController extends Controller
         }
 
         $user->delete();
-        LogAktivitas::catat('Hapus Pengguna', "Pengguna {$user->name} ({$user->email}) dihapus.");
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil dihapus.');
     }
 }

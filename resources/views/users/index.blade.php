@@ -8,7 +8,7 @@
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
             <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Kelola Pengguna</h2>
-            <p class="text-sm text-slate-500 mt-1">Kelola akun Super Admin dan Admin Ruangan.</p>
+            <p class="text-sm text-slate-500 mt-1">Kelola akun Super Admin, Admin Gedung, dan Admin Ruangan.</p>
         </div>
         <a href="{{ route('users.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">
             <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Tambah Pengguna
@@ -47,11 +47,12 @@
                         </td>
                         <td class="px-6 py-4">{{ $item->email }}</td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->ruangan_id === null ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
-                                {{ $item->ruangan_id === null ? 'Super Admin' : 'Admin Ruangan' }}
+                            @php($role = $item->role ?? ($item->ruangan_id === null ? 'Super Admin' : 'Admin Ruangan'))
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $role === 'Super Admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : ($role === 'Admin Gedung' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
+                                {{ $role }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-slate-500">{{ $item->ruangan->nama_ruangan ?? 'Global' }}</td>
+                        <td class="px-6 py-4 text-slate-500">{{ $item->gedung->nama_gedung ?? '-' }} / {{ $item->ruangan->nama_ruangan ?? 'Global' }}</td>
                         <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
                             <a href="{{ route('users.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
                                 <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
@@ -94,12 +95,13 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 border-t border-slate-100 pt-3">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->ruangan_id === null ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
-                        {{ $item->ruangan_id === null ? 'Super Admin' : 'Admin Ruangan' }}
+                    @php($role = $item->role ?? ($item->ruangan_id === null ? 'Super Admin' : 'Admin Ruangan'))
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $role === 'Super Admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : ($role === 'Admin Gedung' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
+                        {{ $role }}
                     </span>
                     <span>
                         <i data-lucide="door-open" class="w-3.5 h-3.5 inline-block text-slate-400 mr-1"></i>
-                        {{ $item->ruangan->nama_ruangan ?? 'Global' }}
+                        {{ $item->gedung->nama_gedung ?? '-' }} / {{ $item->ruangan->nama_ruangan ?? 'Global' }}
                     </span>
                 </div>
                 <div class="flex items-center gap-5 pt-1">

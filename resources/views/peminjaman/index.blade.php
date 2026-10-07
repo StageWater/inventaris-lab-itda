@@ -1,18 +1,20 @@
 @extends('layouts.app_simalab')
 
-@section('title', 'Transaksi | SIMALAB ITDA')
-@section('header', 'Transaksi')
+@section('title', 'Peminjaman | SIMALAB ITDA')
+@section('header', 'Peminjaman')
 @section('activeMenu', 'peminjaman')
 
 @section('content')
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Transaksi</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Peminjaman</h2>
             <p class="text-sm text-slate-500 mt-1">Catat dan pantau sirkulasi peminjaman aset laboratorium.</p>
         </div>
+        @if(!auth()->user()->isSuperAdmin())
         <a href="{{ route('peminjaman.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">
             <i data-lucide="plus-circle" class="w-4 h-4 mr-2"></i> Catat Peminjaman
         </a>
+        @endif
     </div>
 
 @if(Auth::user()->ruangan_id === null)
@@ -77,7 +79,9 @@
                         <th class="px-6 py-4 font-semibold tracking-wider">Tgl. Pengembalian</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Berkas</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Status</th>
+                        @if(!auth()->user()->isSuperAdmin())
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100" data-reveal-stagger>
@@ -118,6 +122,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
+                            @if(!auth()->user()->isSuperAdmin())
                             @if($pinjam->status_pinjam == 'Dipinjam')
                             <form action="{{ route('peminjaman.kembalikan', $pinjam->id) }}" method="POST" class="inline-block">
                                 @csrf
@@ -134,13 +139,16 @@
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
                                 </button>
                             </form>
+                            @else
+                            <span class="text-xs text-slate-400">-</span>
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ Auth::user()->ruangan_id === null ? 9 : 8 }}" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="{{ auth()->user()->isSuperAdmin() ? 8 : (Auth::user()->ruangan_id === null ? 9 : 8) }}" class="px-6 py-12 text-center text-slate-400">
                             <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
-                            <p>Belum ada riwayat transaksi peminjaman.</p>
+                            <p>Belum ada riwayat peminjaman.</p>
                         </td>
                     </tr>
                     @endforelse
@@ -183,6 +191,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-5 border-t border-slate-100 pt-3">
+                    @if(!auth()->user()->isSuperAdmin())
                     @if($pinjam->status_pinjam == 'Dipinjam')
                     <form action="{{ route('peminjaman.kembalikan', $pinjam->id) }}" method="POST">
                         @csrf
@@ -199,12 +208,13 @@
                             <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
                         </button>
                     </form>
+                    @endif
                 </div>
             </div>
             @empty
             <div class="px-6 py-12 text-center text-slate-400">
                 <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
-                <p>Belum ada riwayat transaksi peminjaman.</p>
+                <p>Belum ada riwayat peminjaman.</p>
             </div>
             @endforelse
         </div>

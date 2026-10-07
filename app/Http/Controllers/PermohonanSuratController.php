@@ -13,7 +13,7 @@ class PermohonanSuratController extends Controller
 {
     private function authorizeSuperAdmin()
     {
-        abort_if(Auth::user()->ruangan_id !== null, 403, 'Anda tidak memiliki akses untuk mengelola surat bebas lab.');
+        abort_unless(Auth::user()->isSuperAdmin(), 403, 'Anda tidak memiliki akses untuk mengelola surat bebas lab.');
     }
 
     public function createPublic()

@@ -44,6 +44,17 @@
                     <input type="text" name="nama_ruangan" value="{{ old('nama_ruangan', $ruangan->nama_ruangan) }}" required
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700">
                 </div>
+                @if(Auth::user()->isSuperAdmin())
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Gedung</label>
+                    <select name="gedung_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-700 bg-white">
+                        <option value="">Tanpa gedung</option>
+                        @foreach($gedung as $g)
+                            <option value="{{ $g->id }}" {{ old('gedung_id', $ruangan->gedung_id) == $g->id ? 'selected' : '' }}>{{ $g->nama_gedung }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Keterangan (Opsional)</label>
                     <textarea name="keterangan" rows="3" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700">{{ old('keterangan', $ruangan->keterangan) }}</textarea>

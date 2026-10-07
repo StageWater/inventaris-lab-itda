@@ -13,14 +13,17 @@ use Illuminate\Support\Facades\DB;
 
 class PeminjamanController extends Controller
 {
-    // Admin Ruangan hanya melihat transaksi barang di ruangannya sendiri
+    private function authorizeOperasional()
+    {
+        abort_if(Auth::user()->isSuperAdmin(), 403, 'Super Admin hanya memantau. Peminjaman dikelola Admin Gedung/Ruangan.');
+    }
+
+    // Scope: Super Admin semua, Admin Gedung se-gedung, Admin Ruangan se-ruangan
     private function query()
     {
         $query = Peminjaman::with('barang');
-        if (Auth::user()->ruangan_id != null) {
-            $query->whereHas('barang', function ($q) {
-                $q->where('ruangan_id', Auth::user()->ruangan_id);
-            });
+        if (! is_null($ids = Auth::user()->ruanganIds())) {
+            $query->whereHas('barang', fn ($q) => $q->whereIn('ruangan_id', $ids ?: [0]));
         }
         return $query;
     }
@@ -50,15 +53,16 @@ class PeminjamanController extends Controller
                 ->whereDate('tanggal_batas', '<', now()->toDateString());
         }
 
-        // Filter ruangan hanya untuk Super Admin; untuk Admin Ruangan, filter ini
-        // bertentangan dengan whereHas di query() sehingga selalu hasil kosong.
-        if (Auth::user()->ruangan_id === null && $request->filled('ruangan_id')) {
+        // Filter ruangan hanya untuk non-Admin-Ruangan
+        if (! Auth::user()->isAdminRuangan() && $request->filled('ruangan_id')) {
             $query->whereHas('barang', function ($q) use ($request) {
                 $q->where('ruangan_id', $request->ruangan_id);
             });
         }
 
-        $ruangan = Auth::user()->ruangan_id === null ? Ruangan::orderBy('nama_ruangan')->get() : collect();
+        $me = Auth::user();
+        $ruangan = $me->isSuperAdmin() ? Ruangan::orderBy('nama_ruangan')->get()
+            : ($me->isAdminGedung() ? Ruangan::where('gedung_id', $me->gedung_id)->orderBy('nama_ruangan')->get() : collect());
 
         $peminjaman = $query->orderByDesc('id')->paginate(15)->withQueryString();
         return view('peminjaman.index', compact('peminjaman', 'ruangan'));
@@ -66,10 +70,11 @@ class PeminjamanController extends Controller
 
     public function create()
     {
-        // Hanya tampilkan barang yang tersedia dan (jika admin ruangan) punya milik ruangannya
+        $this->authorizeOperasional();
+        // Hanya tampilkan barang yang tersedia dalam scope user
         $barang = Barang::where('status', 'Tersedia');
-        if (Auth::user()->ruangan_id != null) {
-            $barang->where('ruangan_id', Auth::user()->ruangan_id);
+        if (! is_null($ids = Auth::user()->ruanganIds())) {
+            $barang->whereIn('ruangan_id', $ids ?: [0]);
         }
         $barang = $barang->get();
         return view('peminjaman.create', compact('barang'));
@@ -77,6 +82,7 @@ class PeminjamanController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorizeOperasional();
         $request->validate([
             'nama_peminjam' => 'required',
             // Wajib, bukan nullable: cek tanggungan surat bebas lab hanya cocok
@@ -93,8 +99,8 @@ class PeminjamanController extends Controller
         return DB::transaction(function () use ($request) {
             $barang = Barang::where('id', $request->barang_id)->lockForUpdate()->firstOrFail();
 
-            if (Auth::user()->ruangan_id != null && $barang->ruangan_id != Auth::user()->ruangan_id) {
-                abort(403, 'Anda hanya dapat meminjamkan barang di ruangan Anda.');
+            if (! is_null($ids = Auth::user()->ruanganIds()) && ! in_array($barang->ruangan_id, $ids)) {
+                abort(403, 'Anda hanya dapat meminjamkan barang dalam scope Anda.');
             }
 
             if ($barang->status !== 'Tersedia') {
@@ -125,6 +131,7 @@ class PeminjamanController extends Controller
 
     public function kembalikan($id)
     {
+        $this->authorizeOperasional();
         $peminjaman = $this->query()->findOrFail($id);
 
         if ($peminjaman->status_pinjam === 'Dipinjam') {
@@ -141,6 +148,7 @@ class PeminjamanController extends Controller
 
     public function destroy($id)
     {
+        $this->authorizeOperasional();
         $peminjaman = $this->query()->findOrFail($id);
 
         if ($peminjaman->status_pinjam === 'Dipinjam') {

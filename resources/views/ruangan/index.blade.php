@@ -10,16 +10,18 @@
             <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Kelola Ruangan</h2>
             <p class="text-sm text-slate-500 mt-1">Kelola lokasi laboratorium untuk penempatan aset.</p>
         </div>
+        @if(!auth()->user()->isSuperAdmin())
         <a href="{{ route('ruangan.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">
             <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Tambah Ruangan
         </a>
+        @endif
     </div>
 
     @if($tanpaAdmin > 0)
     <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-lg text-sm">
         <span class="flex items-start">
             <i data-lucide="user-x" class="w-5 h-5 mt-0.5 mr-2 shrink-0 text-amber-600"></i>
-            <span><strong>{{ $tanpaAdmin }} ruangan</strong> belum punya admin, jadi barangnya hanya bisa dikelola Super Admin.</span>
+            <span><strong>{{ $tanpaAdmin }} ruangan</strong> belum punya admin, segera tugaskan Admin Ruangan.</span>
         </span>
         <a href="{{ route('ruangan.admin.form') }}" class="inline-flex items-center justify-center shrink-0 rounded-md text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 shadow-sm h-9 px-4">
             <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Isi Admin Sekarang
@@ -43,9 +45,12 @@
                     <tr>
                         <th class="px-6 py-4 font-semibold tracking-wider">Kode Ruangan</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Nama Ruangan</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Gedung</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Jumlah Barang</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Admin</th>
+                        @if(!auth()->user()->isSuperAdmin())
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100" data-reveal-stagger>
@@ -53,6 +58,7 @@
                     <tr class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-6 py-4 font-medium text-blue-950">{{ $item->kode_ruangan }}</td>
                         <td class="px-6 py-4 min-w-[12rem]">{{ $item->nama_ruangan }}</td>
+                        <td class="px-6 py-4">{{ $item->gedung->nama_gedung ?? '-' }}</td>
                         <td class="px-6 py-4 text-center">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                                 {{ $item->barangs_count }} barang
@@ -70,6 +76,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
+                            @if(!auth()->user()->isSuperAdmin())
                             <a href="{{ route('ruangan.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
                                 <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
                             </a>
@@ -80,11 +87,14 @@
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
                                 </button>
                             </form>
+                            @else
+                            <span class="text-xs text-slate-400">-</span>
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="{{ auth()->user()->isSuperAdmin() ? 5 : 6 }}" class="px-6 py-12 text-center text-slate-400">
                             <i data-lucide="door-open" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
                             <p>Belum ada ruangan terdaftar.</p>
                         </td>
@@ -100,7 +110,7 @@
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <div class="text-sm font-semibold text-blue-950">{{ $item->nama_ruangan }}</div>
-                        <div class="text-xs text-slate-500 mt-0.5">{{ $item->kode_ruangan }}</div>
+                        <div class="text-xs text-slate-500 mt-0.5">{{ $item->kode_ruangan }} · {{ $item->gedung->nama_gedung ?? 'Tanpa gedung' }}</div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
@@ -118,6 +128,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-5 border-t border-slate-100 pt-3">
+                    @if(!auth()->user()->isSuperAdmin())
                     <a href="{{ route('ruangan.edit', $item->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
                         <i data-lucide="edit-3" class="w-4 h-4 mr-1"></i> Edit
                     </a>
@@ -128,6 +139,7 @@
                             <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Hapus
                         </button>
                     </form>
+                    @endif
                 </div>
             </div>
             @empty

@@ -68,6 +68,28 @@
                     </div>
                 </div>
 
+                @if(Auth::user()->isSuperAdmin())
+                <div class="grid sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Peran</label>
+                        <select name="role" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                            @foreach(['Super Admin', 'Admin Gedung', 'Admin Ruangan'] as $role)
+                                <option value="{{ $role }}" {{ old('role', $user->role) === $role ? 'selected' : '' }}>{{ $role }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Gedung</label>
+                        <select name="gedung_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                            <option value="">Tanpa gedung</option>
+                            @foreach($gedung as $g)
+                                <option value="{{ $g->id }}" {{ old('gedung_id', $user->gedung_id) == $g->id ? 'selected' : '' }}>{{ $g->nama_gedung }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endif
+
 <div class="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end sm:space-x-3 space-y-reverse space-y-3 border-t border-slate-100">
                     <a href="{{ route('users.index') }}" class="px-5 py-2.5 text-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Batal</a>
                     <button type="submit" class="px-5 py-2.5 text-center text-sm font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-sm transition-all flex items-center justify-center">

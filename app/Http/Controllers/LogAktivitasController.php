@@ -12,10 +12,15 @@ class LogAktivitasController extends Controller
     {
         $query = LogAktivitas::with('user')->latest();
 
-        // RBAC: Admin Ruangan hanya melihat aktivitas pelaku di ruangannya sendiri;
-        // aktivitas Super Admin (ruangan_id null) tidak ditampilkan ke Admin Ruangan.
-        if (Auth::user()->ruangan_id != null) {
-            $query->whereHas('user', fn ($q) => $q->where('ruangan_id', Auth::user()->ruangan_id));
+        // Scope 3-tier: Admin Ruangan se-ruangan, Admin Gedung se-gedung
+        if (! is_null($ids = Auth::user()->ruanganIds())) {
+            $me = Auth::user();
+            $query->where(function ($q) use ($me, $ids) {
+                $q->whereHas('user', fn ($qq) => $qq->whereIn('ruangan_id', $ids ?: [0]));
+                if ($me->isAdminGedung()) {
+                    $q->orWhereHas('user', fn ($qq) => $qq->where('gedung_id', $me->gedung_id));
+                }
+            });
         }
 
         if ($kata = $request->kata) {

@@ -11,10 +11,6 @@
 @endsection
 
 @section('content')
-    <a href="{{ route('barang.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Data Barang
-    </a>
-
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-3xl">
         <div class="p-6 border-b border-slate-200 bg-slate-50/50">
             <h2 class="text-xl font-bold text-blue-950">Edit Barang</h2>
@@ -60,10 +56,10 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Lokasi Ruangan</label>
-                        @if(Auth::user()->ruangan_id === null)
+                        @if(! auth()->user()->isAdminRuangan())
                             <div class="relative">
                                 <select name="ruangan_id" required class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
-                                    @foreach($ruangan as $item)
+                                    @foreach($ruanganOptions as $item)
                                         <option value="{{ $item->id }}" {{ $barang->ruangan_id == $item->id ? 'selected' : '' }}>
                                             {{ $item->kode_ruangan }} - {{ $item->nama_ruangan }}
                                         </option>

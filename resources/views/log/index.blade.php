@@ -22,28 +22,46 @@
     </form>
 
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div class="divide-y divide-slate-100" data-reveal-stagger>
-            @forelse($logs as $log)
-            <div class="px-5 sm:px-6 py-4 flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <i data-lucide="activity" class="w-4 h-4"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm text-slate-700 leading-snug">{{ $log->deskripsi }}</p>
-                    <p class="text-xs text-slate-400 mt-0.5">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">{{ $log->aksi }}</span>
-                        <span class="ml-1">{{ $log->user->name ?? 'Sistem' }}</span>
-                        <span class="mx-1">·</span>
-                        {{ $log->created_at->format('d M Y, H:i') }}
-                    </p>
-                </div>
-            </div>
-            @empty
-            <div class="px-6 py-14 text-center text-slate-400">
-                <i data-lucide="history" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
-                <p>Tidak ada riwayat aktivitas ditemukan.</p>
-            </div>
-            @endforelse
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-slate-600">
+                <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Waktu</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Aksi</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Deskripsi</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Pelaku</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">IP</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($logs as $log)
+                    @php
+                        $aksi = $log->aksi ?? '';
+                        $badge = str_contains($aksi, 'Hapus') || str_contains($aksi, 'DELETE')
+                            ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                            : (str_contains($aksi, 'Ubah') || str_contains($aksi, 'UPDATE') || str_contains($aksi, 'Status')
+                                ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                                : (str_contains($aksi, 'Tambah') || str_contains($aksi, 'INSERT') || str_contains($aksi, 'Import') || str_contains($aksi, 'Catat')
+                                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                    : 'bg-slate-100 text-slate-600 border border-slate-200'));
+                    @endphp
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-500">{{ $log->created_at->format('d M Y, H:i') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $badge }}">{{ $aksi }}</span></td>
+                        <td class="px-6 py-4 text-slate-700">{{ $log->deskripsi }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $log->nama_user ?? $log->user->name ?? 'Sistem' }}{{ $log->role_user ? ' ('.$log->role_user.')' : '' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-500">{{ $log->ip_address ?? '-' }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                            <i data-lucide="history" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
+                            <p>Tidak ada riwayat aktivitas ditemukan.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
         @if($logs->hasPages())

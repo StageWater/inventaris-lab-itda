@@ -70,7 +70,8 @@
 
     @php
         $user = Auth::user();
-        $isSuperAdmin = $user->ruangan_id === null;
+        $isSuperAdmin = $user->isSuperAdmin();
+        $canKelola = $isSuperAdmin || $user->isAdminGedung();
         $activeMenu = $activeMenu ?? '';
     @endphp
 
@@ -99,12 +100,17 @@
                 <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3 {{ $activeMenu === 'dashboard' ? 'text-blue-700' : 'text-slate-400' }}"></i> Dashboard
             </a>
 
-            @if($isSuperAdmin)
+            @if($canKelola)
             <a href="{{ route('ruangan.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'ruangan' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
                 <i data-lucide="door-open" class="w-4 h-4 mr-3 {{ $activeMenu === 'ruangan' ? 'text-blue-700' : 'text-slate-400' }}"></i> Kelola Ruangan
             </a>
             <a href="{{ route('users.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'users' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
                 <i data-lucide="users" class="w-4 h-4 mr-3 {{ $activeMenu === 'users' ? 'text-blue-700' : 'text-slate-400' }}"></i> Kelola Pengguna
+            </a>
+            @endif
+            @if($isSuperAdmin)
+            <a href="{{ route('gedung.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'gedung' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="building-2" class="w-4 h-4 mr-3 {{ $activeMenu === 'gedung' ? 'text-blue-700' : 'text-slate-400' }}"></i> Kelola Gedung
             </a>
             @endif
 
@@ -113,7 +119,7 @@
             </a>
 
             <a href="{{ route('peminjaman.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'peminjaman' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="arrow-right-left" class="w-4 h-4 mr-3 {{ $activeMenu === 'peminjaman' ? 'text-blue-700' : 'text-slate-400' }}"></i> Transaksi
+                <i data-lucide="arrow-right-left" class="w-4 h-4 mr-3 {{ $activeMenu === 'peminjaman' ? 'text-blue-700' : 'text-slate-400' }}"></i> Peminjaman
             </a>
 
             @if($isSuperAdmin)
@@ -134,7 +140,7 @@
                 </div>
                 <div class="ml-3 min-w-0 flex-1">
                     <p class="text-sm font-semibold text-slate-800 truncate group-hover:text-blue-700 transition-colors">{{ $user->name }}</p>
-                    <p class="text-[11px] text-slate-500 font-medium">{{ $isSuperAdmin ? 'Super Admin' : 'Admin Ruang' }}</p>
+                    <p class="text-[11px] text-slate-500 font-medium">{{ $user->role ?? ($isSuperAdmin ? 'Super Admin' : 'Admin Ruang') }}</p>
                 </div>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors shrink-0"></i>
             </a>

@@ -46,6 +46,7 @@
                         </a>
                     @endif
                     <div class="flex flex-wrap gap-2 mt-4">
+                        @if(!auth()->user()->isSuperAdmin())
                         <a href="{{ route('barang.edit', $barang->id) }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold text-blue-700 bg-white border border-blue-300 hover:bg-blue-50 shadow-sm h-9 px-4 transition-colors">
                             <i data-lucide="edit-3" class="w-4 h-4 mr-2"></i> Edit
                         </a>
@@ -66,6 +67,7 @@
                                 {{ $barang->status === 'Tersedia' ? 'Tandai Maintenance' : 'Selesai Maintenance' }}
                             </button>
                         </form>
+                        @endif
                         @endif
                     </div>
                 </div>

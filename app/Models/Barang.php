@@ -27,7 +27,9 @@ class Barang extends Model
                 ->generate(route('barang.show', $this->id));
             $file = 'qr/' . Str::slug($this->kode_barang) . '.svg';
             Storage::disk('public')->put($file, $svg);
-            $this->update(['qr_code' => $file]);
+            // ponytail: quiet agar Observer tak mencatat "Ubah Barang" palsu
+            // tiap kali QR dibuat/di-regenerate setelah create.
+            $this->updateQuietly(['qr_code' => $file]);
         } catch (\Throwable $e) {
             // QR cadangan: kolom nullable, biarkan kosong bila render gagal.
         }

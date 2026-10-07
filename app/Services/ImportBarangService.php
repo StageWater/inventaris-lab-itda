@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Barang;
 use App\Models\Ruangan;
+use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportBarangService
@@ -12,6 +13,7 @@ class ImportBarangService
     private int $autoSeq = 1;
     private int $roomSeq = 0;
     private int $ruanganBaru = 0;
+    private ?int $gedungId = null;
 
     public function import(string $filePath, ?string $kategori = null): array
     {
@@ -21,6 +23,10 @@ class ImportBarangService
 
         $kategori ??= $this->kategoriFromFilename(basename($filePath));
         $this->roomSeq = (Ruangan::max('id') ?? 0) + 1;
+        // Admin Gedung: injeksikan gedungnya agar ruangan baru langsung masuk scope-nya.
+        // Super Admin: gedungId null -> roomId() menolak ruangan baru (throw) agar tak orphan.
+        $me = Auth::user();
+        $this->gedungId = ($me && $me->isAdminGedung()) ? $me->gedung_id : null;
 
         $barangBaru = 0;
 
@@ -87,12 +93,20 @@ class ImportBarangService
 
     private function roomId(string $nama): int
     {
-        $ruangan = Ruangan::firstOrCreate(
-            ['nama_ruangan' => trim($nama)],
-            ['kode_ruangan' => 'LAB-' . str_pad($this->roomSeq++, 2, '0', STR_PAD_LEFT)],
-        );
-        $this->ruanganBaru += $ruangan->wasRecentlyCreated ? 1 : 0;
-        return $ruangan->id;
+        $nama = trim($nama);
+        if ($this->gedungId !== null) {
+            $ruangan = Ruangan::firstOrCreate(
+                ['nama_ruangan' => $nama, 'gedung_id' => $this->gedungId],
+                ['kode_ruangan' => 'LAB-' . str_pad($this->roomSeq++, 2, '0', STR_PAD_LEFT)],
+            );
+            $this->ruanganBaru += $ruangan->wasRecentlyCreated ? 1 : 0;
+            return $ruangan->id;
+        }
+        if ($ruangan = Ruangan::where('nama_ruangan', $nama)->first()) {
+            return $ruangan->id;
+        }
+        // ponytail: tolak ruangan baru tanpa gedung; orphan gedung null tak terlihat Admin Gedung mana pun.
+        throw new \RuntimeException("Ruangan baru '{$nama}' tanpa gedung. Buatkan dulu via Kelola Ruangan (isi Gedung) sebelum import.");
     }
 
     private function kategoriFromFilename(string $file): string

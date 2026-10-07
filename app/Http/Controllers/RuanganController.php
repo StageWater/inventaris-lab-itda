@@ -12,16 +12,32 @@ use Illuminate\Support\Facades\Hash;
 
 class RuanganController extends Controller
 {
-    // Hanya Super Admin (ruangan_id NULL) yang boleh mengelola ruangan
-    private function authorizeSuperAdmin()
+    // Lihat: Super Admin (monitoring global) + Admin Gedung. Tulis:
+    // hanya Admin Gedung (scope gedung_id). Admin Ruangan: ditolak semua.
+    private function authorizeKelolaRuangan()
     {
-        abort_if(Auth::user()->ruangan_id !== null, 403, 'Anda tidak memiliki akses untuk mengelola ruangan.');
+        abort_if(Auth::user()->isAdminRuangan(), 403, 'Anda tidak memiliki akses untuk mengelola ruangan.');
+    }
+
+    private function authorizeOperasional()
+    {
+        abort_unless(Auth::user()->isAdminGedung(), 403, 'Super Admin hanya memantau. CRUD ruangan dikelola Admin Gedung.');
+    }
+
+    private function ruanganQuery()
+    {
+        $me = Auth::user();
+        $query = Ruangan::with(['gedung'])->withCount(['barangs', 'users']);
+        if ($me->isAdminGedung()) {
+            $query->where('gedung_id', $me->gedung_id);
+        }
+        return $query;
     }
 
     public function index(Request $request)
     {
-        $this->authorizeSuperAdmin();
-        $query = Ruangan::withCount(['barangs', 'users']);
+        $this->authorizeKelolaRuangan();
+        $query = $this->ruanganQuery();
         if ($katakunci = $request->katakunci) {
             $query->where(function ($q) use ($katakunci) {
                 $q->where('kode_ruangan', 'like', "%$katakunci%")
@@ -29,51 +45,60 @@ class RuanganController extends Controller
             });
         }
         $ruangan = $query->orderBy('nama_ruangan')->paginate(15)->withQueryString();
-        $tanpaAdmin = Ruangan::has('users', '<', 1)->count();
+        $tanpaAdmin = (clone $query)->has('users', '<', 1)->count();
         return view('ruangan.index', compact('ruangan', 'tanpaAdmin'));
     }
 
     public function create()
     {
-        $this->authorizeSuperAdmin();
-        return view('ruangan.create');
+        $this->authorizeOperasional();
+        $gedung = \App\Models\Gedung::orderBy('nama_gedung')->get();
+        return view('ruangan.create', compact('gedung'));
     }
 
     public function store(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeOperasional();
 
         $request->validate([
             'kode_ruangan' => 'required|unique:ruangans,kode_ruangan',
             'nama_ruangan' => 'required',
+            'gedung_id' => 'nullable|exists:gedungs,id',
         ]);
 
-        Ruangan::create($request->only(['kode_ruangan', 'nama_ruangan', 'keterangan']));
+        $data = $request->only(['kode_ruangan', 'nama_ruangan', 'keterangan', 'gedung_id']);
+        if (Auth::user()->isAdminGedung()) {
+            $data['gedung_id'] = Auth::user()->gedung_id;
+        }
+        Ruangan::create($data);
         LogAktivitas::catat('Tambah Ruangan', "Ruangan {$request->kode_ruangan} - {$request->nama_ruangan} ditambahkan.");
         return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil ditambahkan.');
     }
 
     public function edit(string $id)
     {
-        $this->authorizeSuperAdmin();
-        $ruangan = Ruangan::findOrFail($id);
-        return view('ruangan.edit', compact('ruangan'));
+        $this->authorizeOperasional();
+        $ruangan = $this->ruanganQuery()->findOrFail($id);
+        $gedung = \App\Models\Gedung::orderBy('nama_gedung')->get();
+        return view('ruangan.edit', compact('ruangan', 'gedung'));
     }
 
     public function formTambahAdmin()
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeKelolaRuangan();
 
-        $ruangan = Ruangan::has('users', '<', 1)
-            ->orderBy('nama_ruangan')
-            ->get(['id', 'kode_ruangan', 'nama_ruangan']);
+        $q = Ruangan::has('users', '<', 1)->orderBy('nama_ruangan');
+        if (Auth::user()->isAdminGedung()) {
+            $q->where('gedung_id', Auth::user()->gedung_id);
+        }
+        $ruangan = $q->get(['id', 'kode_ruangan', 'nama_ruangan']);
 
         return view('ruangan.tambah_admin', compact('ruangan'));
     }
 
     public function storeTambahAdmin(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeKelolaRuangan();
 
         // Baris yang tidak diisi sama sekali dibuang, jadi form boleh dikirim
         // setengah terisi: akun hanya dibuat untuk ruangan yang datanya diisi.
@@ -110,10 +135,10 @@ class RuanganController extends Controller
         DB::transaction(function () use ($terisi, &$baru) {
             foreach ($terisi['admin'] as $ruanganId => $row) {
                 $ruangan = Ruangan::find($ruanganId);
-
-                // Form ini hanya menampilkan ruangan tanpa admin, tapi tetap
-                // dijaga agar tidak pernah membuat admin kedua dari form ini.
                 if (! $ruangan || $ruangan->users()->exists()) {
+                    continue;
+                }
+                if (Auth::user()->isAdminGedung() && $ruangan->gedung_id !== Auth::user()->gedung_id) {
                     continue;
                 }
 
@@ -121,6 +146,8 @@ class RuanganController extends Controller
                     'name' => $row['nama'],
                     'email' => $row['email'],
                     'password' => Hash::make($row['password']),
+                    'role' => 'Admin Ruangan',
+                    'gedung_id' => $ruangan->gedung_id,
                     'ruangan_id' => $ruangan->id,
                 ]);
 
@@ -141,23 +168,28 @@ class RuanganController extends Controller
 
     public function update(Request $request, string $id)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeOperasional();
 
-        $ruangan = Ruangan::findOrFail($id);
+        $ruangan = $this->ruanganQuery()->findOrFail($id);
         $request->validate([
             'kode_ruangan' => 'required|unique:ruangans,kode_ruangan,' . $id,
             'nama_ruangan' => 'required',
+            'gedung_id' => 'nullable|exists:gedungs,id',
         ]);
 
-        $ruangan->update($request->only(['kode_ruangan', 'nama_ruangan', 'keterangan']));
+        $data = $request->only(['kode_ruangan', 'nama_ruangan', 'keterangan']);
+        if (Auth::user()->isSuperAdmin()) {
+            $data['gedung_id'] = $request->gedung_id ?: null;
+        }
+        $ruangan->update($data);
         LogAktivitas::catat('Ubah Ruangan', "Ruangan {$request->kode_ruangan} - {$request->nama_ruangan} diperbarui.");
         return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil diperbarui.');
     }
 
     public function destroy(string $id)
     {
-        $this->authorizeSuperAdmin();
-        $ruangan = Ruangan::withCount(['barangs', 'users'])->findOrFail($id);
+        $this->authorizeOperasional();
+        $ruangan = $this->ruanganQuery()->withCount(['barangs', 'users'])->findOrFail($id);
 
         // Guard: mencegah penghapusan diam-diam semua barang via ON DELETE CASCADE
         if ($ruangan->barangs_count > 0) {

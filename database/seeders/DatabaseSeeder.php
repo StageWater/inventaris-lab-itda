@@ -40,15 +40,15 @@ class DatabaseSeeder extends Seeder
         // 2. PENGGUNA
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@itda.ac.id'],
-            ['name' => 'Super Admin Lab', 'password' => Hash::make('password123'), 'ruangan_id' => null]
+            ['name' => 'Super Admin Lab', 'password' => Hash::make('password123'), 'role' => 'Super Admin', 'gedung_id' => null, 'ruangan_id' => null]
         );
         $adminRpl1 = User::firstOrCreate(
             ['email' => 'admin.rpl1@itda.ac.id'],
-            ['name' => 'Admin Lab Komputer 1', 'password' => Hash::make('password123'), 'ruangan_id' => $ruanganIds['RPL-1']]
+            ['name' => 'Admin Lab Komputer 1', 'password' => Hash::make('password123'), 'role' => 'Admin Ruangan', 'gedung_id' => null, 'ruangan_id' => $ruanganIds['RPL-1']]
         );
         $adminRpl2 = User::firstOrCreate(
             ['email' => 'admin.rpl2@itda.ac.id'],
-            ['name' => 'Admin Lab Komputer 2', 'password' => Hash::make('password123'), 'ruangan_id' => $ruanganIds['RPL-2']]
+            ['name' => 'Admin Lab Komputer 2', 'password' => Hash::make('password123'), 'role' => 'Admin Ruangan', 'gedung_id' => null, 'ruangan_id' => $ruanganIds['RPL-2']]
         );
 
         // 3. BARANG

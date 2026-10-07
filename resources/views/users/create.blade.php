@@ -18,7 +18,7 @@
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl">
         <div class="p-6 border-b border-slate-200 bg-slate-50/50">
             <h2 class="text-xl font-bold text-blue-950">Tambah Pengguna Baru</h2>
-            <p class="text-sm text-slate-500 mt-1">Daftarkan akun Super Admin atau Admin Ruangan.</p>
+            <p class="text-sm text-slate-500 mt-1">Daftarkan akun Super Admin, Admin Gedung, atau Admin Ruangan.</p>
         </div>
 
         <div class="p-6">
@@ -55,7 +55,7 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Penempatan Ruangan</label>
                     <div class="relative">
                         <select name="ruangan_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
-                            <option value="" {{ old('ruangan_id') === '' ? 'selected' : '' }}>Jadikan Super Admin Utama</option>
+                            <option value="" {{ old('ruangan_id') === '' ? 'selected' : '' }}>{{ Auth::user()->isAdminGedung() ? 'Pilih ruangan di gedung Anda' : 'Jadikan Super Admin Utama' }}</option>
                             @foreach($ruangan as $r)
                                 <option value="{{ $r->id }}" {{ (old('ruangan_id') !== '' && old('ruangan_id') == $r->id) ? 'selected' : '' }}>
                                     {{ $r->kode_ruangan }} - {{ $r->nama_ruangan }}
@@ -64,8 +64,30 @@
                         </select>
                         <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-slate-400 pointer-events-none"></i>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">Pilih ruangan untuk menjadikan Admin Ruangan, atau tetap kosong untuk Super Admin.</p>
+                    <p class="text-xs text-slate-500 mt-1">{{ Auth::user()->isAdminGedung() ? 'Admin Gedung hanya bisa menambah Admin Ruangan di gedungnya.' : 'Pilih ruangan untuk Admin Ruangan, atau kosong untuk Super Admin.' }}</p>
                 </div>
+
+                @if(Auth::user()->isSuperAdmin())
+                <div class="grid sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Peran</label>
+                        <select name="role" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                            <option value="Admin Ruangan">Admin Ruangan</option>
+                            <option value="Admin Gedung" {{ old('role') === 'Admin Gedung' ? 'selected' : '' }}>Admin Gedung</option>
+                            <option value="Super Admin" {{ old('role') === 'Super Admin' ? 'selected' : '' }}>Super Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Gedung</label>
+                        <select name="gedung_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                            <option value="">Tanpa gedung</option>
+                            @foreach($gedung as $g)
+                                <option value="{{ $g->id }}" {{ old('gedung_id') == $g->id ? 'selected' : '' }}>{{ $g->nama_gedung }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endif
 
 <div class="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end sm:space-x-3 space-y-reverse space-y-3 border-t border-slate-100">
                     <a href="{{ route('users.index') }}" class="px-5 py-2.5 text-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Batal</a>

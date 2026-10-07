@@ -9,18 +9,31 @@ use App\Models\Ruangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class BarangController extends Controller
 {
+    private function authorizeOperasional()
+    {
+        abort_if(Auth::user()->isSuperAdmin(), 403, 'Super Admin hanya memantau. Operasional barang dikelola Admin Gedung/Ruangan.');
+    }
+
     private function query()
     {
         $query = Barang::query();
-        // RBAC: Admin Ruangan hanya melihat barang ruangannya sendiri
-        if (Auth::user()->ruangan_id != null) {
-            $query->where('ruangan_id', Auth::user()->ruangan_id);
+        if (! is_null($ids = Auth::user()->ruanganIds())) {
+            $query->whereIn('ruangan_id', $ids ?: [0]);
         }
         return $query;
+    }
+
+    private function ruanganOptions()
+    {
+        if (is_null($ids = Auth::user()->ruanganIds())) {
+            return Ruangan::orderBy('nama_ruangan')->get();
+        }
+        return Ruangan::whereIn('id', $ids ?: [0])->orderBy('nama_ruangan')->get();
     }
 
     public function index(Request $request)
@@ -42,28 +55,32 @@ if ($status = $request->status) {
             $query->whereIn('kondisi', ['Rusak Ringan', 'Rusak Berat']);
         }
 
-        // Filter ruangan (hanya untuk Super Admin)
-        if (Auth::user()->ruangan_id === null && $request->filled('ruangan_id')) {
+        // Filter ruangan: abaikan pilihan di luar scope (ketikan manual query string).
+        $me = Auth::user();
+        $scope = $me->ruanganIds();
+        if (! $me->isAdminRuangan() && $request->filled('ruangan_id')
+            && ($scope === null || in_array($request->ruangan_id, $scope))) {
             $query->where('ruangan_id', $request->ruangan_id);
         }
 
-        // Daftar ruangan untuk dropdown filter (hanya untuk Super Admin)
-        $ruangan = Auth::user()->ruangan_id === null ? Ruangan::orderBy('nama_ruangan')->get() : collect();
+        // Daftar ruangan untuk dropdown filter
+        $ruanganOptions = $this->ruanganOptions();
 
         // Barang terbaru tampil paling atas
-        $barang = $query->orderByDesc('id')->paginate(15)->withQueryString();
-        return view('barang.index', compact('barang', 'ruangan'));
+        $barang = $query->with('ruangan')->orderByDesc('id')->paginate(15)->withQueryString();
+        return view('barang.index', compact('barang', 'ruanganOptions'));
     }
 
     public function create()
     {
-        // Admin Ruangan tidak boleh memilih ruangan; hanya Super Admin yang bisa
-        $ruangan = Auth::user()->ruangan_id === null ? Ruangan::all() : [];
-        return view('barang.create', compact('ruangan'));
+        $this->authorizeOperasional();
+        return view('barang.create', ['ruanganOptions' => $this->ruanganOptions()]);
     }
 
     public function store(Request $request)
     {
+        $this->authorizeOperasional();
+        $me = Auth::user();
         $rules = [
             'kode_barang' => 'required|unique:barangs,kode_barang',
             // kondisi/kategori kolomnya NOT NULL (kondisi = enum di DB); tanpa
@@ -73,20 +90,27 @@ if ($status = $request->status) {
             'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ];
-        if (Auth::user()->ruangan_id === null) {
-            $rules['ruangan_id'] = 'required|exists:ruangans,id';
+        if (! $me->isAdminRuangan()) {
+            $rules['ruangan_id'] = ['required', 'exists:ruangans,id'];
+            if (! is_null($scope = $me->ruanganIds())) {
+                // Tolak ruangan_id di luar wilayah dengan 422, bukan 403 --
+                // cegah manipulasi inspect element / Postman.
+                $rules['ruangan_id'][] = Rule::in($scope);
+            }
         }
 
         $request->validate($rules, [
             'kode_barang.unique' => 'Gagal! Kode Barang sudah terpakai.',
-            'ruangan_id.required' => 'Pilih lokasi ruangan terlebih dahulu.'
+            'ruangan_id.required' => 'Pilih lokasi ruangan terlebih dahulu.',
+            'ruangan_id.in' => 'Ruangan di luar wilayah akses Anda.'
         ]);
 
         $data = $request->only(['kode_barang', 'nama_barang', 'kategori', 'kondisi']);
-        // RBAC: Admin Ruangan terpaksa memakai ruangannya sendiri
-        $data['ruangan_id'] = Auth::user()->ruangan_id !== null
-            ? Auth::user()->ruangan_id
-            : $request->ruangan_id;
+        if ($me->isAdminRuangan()) {
+            $data['ruangan_id'] = $me->ruangan_id;
+        } else {
+            $data['ruangan_id'] = $request->ruangan_id;
+        }
 
         if ($request->hasFile('foto')) {
             $data['foto'] = $request->file('foto')->store('foto-barang', 'public');
@@ -94,7 +118,6 @@ if ($status = $request->status) {
 
         $barang = Barang::create($data);
         $barang->generateQrCode();
-        LogAktivitas::catat('Tambah Barang', "Barang {$data['kode_barang']} - {$data['nama_barang']} ditambahkan.");
         return redirect()->route('barang.index')->with('success', 'Barang berhasil ditambahkan.');
     }
 
@@ -110,41 +133,46 @@ if ($status = $request->status) {
 
     public function edit(string $id)
     {
+        $this->authorizeOperasional();
         $barang = $this->query()->findOrFail($id);
-        $ruangan = Auth::user()->ruangan_id === null ? Ruangan::all() : [];
-        return view('barang.edit', compact('barang', 'ruangan'));
+        return view('barang.edit', ['barang' => $barang, 'ruanganOptions' => $this->ruanganOptions()]);
     }
 
     public function update(Request $request, string $id)
     {
+        $this->authorizeOperasional();
         $barang = $this->query()->findOrFail($id);
 
+        $me = Auth::user();
         $rules = [
             'kode_barang' => 'required|unique:barangs,kode_barang,' . $id,
             'nama_barang' => 'required|string|max:255',
             'kategori' => 'required|string|max:255',
             'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat',
         ];
-        if (Auth::user()->ruangan_id === null) {
-            $rules['ruangan_id'] = 'required|exists:ruangans,id';
+        if (! $me->isAdminRuangan()) {
+            $rules['ruangan_id'] = ['required', 'exists:ruangans,id'];
+            if (! is_null($scope = $me->ruanganIds())) {
+                $rules['ruangan_id'][] = Rule::in($scope);
+            }
         }
         $request->validate($rules, [
-            'ruangan_id.required' => 'Pilih lokasi ruangan terlebih dahulu.'
+            'ruangan_id.required' => 'Pilih lokasi ruangan terlebih dahulu.',
+            'ruangan_id.in' => 'Ruangan di luar wilayah akses Anda.'
         ]);
 
         $data = $request->only(['kode_barang', 'nama_barang', 'kategori', 'kondisi']);
-        // RBAC: Admin Ruangan tidak bisa pindahkan barang ke ruangan lain
-        if (Auth::user()->ruangan_id === null) {
+        if (! $me->isAdminRuangan()) {
             $data['ruangan_id'] = $request->ruangan_id;
         }
 
         $barang->update($data);
-        LogAktivitas::catat('Ubah Barang', "Data barang {$barang->kode_barang} - {$barang->nama_barang} diperbarui.");
         return redirect()->route('barang.index')->with('success', 'Barang berhasil diperbarui.');
     }
 
     public function ubahStatus(Request $request, string $id)
     {
+        $this->authorizeOperasional();
         $barang = $this->query()->findOrFail($id);
 
         $request->validate(['status' => 'required|in:Tersedia,Maintenance']);
@@ -153,12 +181,12 @@ if ($status = $request->status) {
         }
 
         $barang->update(['status' => $request->status]);
-        LogAktivitas::catat('Ubah Status', "Status barang {$barang->kode_barang} - {$barang->nama_barang} menjadi {$request->status}.");
         return back()->with('success', "Status barang {$barang->kode_barang} diubah menjadi {$request->status}.");
     }
 
     public function destroy(string $id)
     {
+        $this->authorizeOperasional();
         $barang = $this->query()->findOrFail($id);
 
         // FK peminjaman memakai ON DELETE CASCADE, jadi menghapus barang yang sedang
@@ -171,7 +199,6 @@ if ($status = $request->status) {
 
         $berkas = array_filter([$barang->foto, $barang->qr_code]);
 
-        LogAktivitas::catat('Hapus Barang', "Barang {$barang->kode_barang} - {$barang->nama_barang} dihapus.");
         $barang->delete();
 
         foreach ($berkas as $path) {
@@ -183,17 +210,13 @@ if ($status = $request->status) {
 
     public function import()
     {
-        if (Auth::user()->ruangan_id !== null) {
-            abort(403, 'Hanya Super Admin yang bisa mengimport data.');
-        }
+        abort_unless(Auth::user()->isSuperAdmin() || Auth::user()->isAdminGedung(), 403, 'Hanya Super Admin / Admin Gedung yang bisa mengimport data.');
         return view('barang.import');
     }
 
     public function importData(Request $request)
     {
-        if (Auth::user()->ruangan_id !== null) {
-            abort(403, 'Hanya Super Admin yang bisa mengimport data.');
-        }
+        abort_unless(Auth::user()->isSuperAdmin() || Auth::user()->isAdminGedung(), 403, 'Hanya Super Admin / Admin Gedung yang bisa mengimport data.');
 
         $request->validate([
             'file' => 'required|file|mimes:xls,xlsx,csv',

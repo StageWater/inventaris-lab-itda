@@ -27,7 +27,7 @@ Route::get('/permohonan-bebas-lab/{id}/unduh', [App\Http\Controllers\PermohonanS
 // ----------------------------------------------------
 // SEMUA RUTE DI DALAM GRUP INI DIGEMBOK (WAJIB LOGIN)
 // ----------------------------------------------------
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'scope'])->group(function () {
     
     // 1. Dashboard
     Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
@@ -42,10 +42,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ruangan/tambah-admin', [RuanganController::class, 'formTambahAdmin'])->name('ruangan.admin.form');
     Route::post('/ruangan/tambah-admin', [RuanganController::class, 'storeTambahAdmin'])->name('ruangan.admin.store');
     Route::resource('ruangan', RuanganController::class);
+    Route::resource('gedung', App\Http\Controllers\GedungController::class)->only(['index', 'store', 'edit', 'update', 'destroy']);
     Route::resource('barang', App\Http\Controllers\BarangController::class);
     Route::resource('users', App\Http\Controllers\UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
-    // 3. Transaksi
+    // 3. Peminjaman
     Route::put('/peminjaman/{id}/kembalikan', [App\Http\Controllers\PeminjamanController::class, 'kembalikan'])->name('peminjaman.kembalikan');
     Route::resource('peminjaman', App\Http\Controllers\PeminjamanController::class)->only(['index', 'create', 'store', 'destroy']);
 

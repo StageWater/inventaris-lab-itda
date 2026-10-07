@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +48,11 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // ponytail: cegah lockout; tanpa ini Super Admin terakhir bisa hapus diri via profil.
+        if ($user->isSuperAdmin() && ! User::where('role', 'Super Admin')->where('id', '!=', $user->id)->exists()) {
+            return back()->with('error', 'Gagal! Anda Super Admin terakhir. Tunjuk super admin lain sebelum menghapus akun ini.');
+        }
 
         Auth::logout();
 
