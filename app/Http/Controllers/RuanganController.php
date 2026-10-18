@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Hash;
 
 class RuanganController extends Controller
 {
-    // Lihat: Super Admin (monitoring global) + Admin Gedung. Tulis:
-    // hanya Admin Gedung (scope gedung_id). Admin Ruangan: ditolak semua.
+    // Lihat: Super Admin (monitoring global) + Kepala Unit. Tulis:
+    // hanya Kepala Unit (scope gedung_id). Laboran: ditolak semua.
     private function authorizeKelolaRuangan()
     {
         abort_if(Auth::user()->isAdminRuangan(), 403, 'Anda tidak memiliki akses untuk mengelola ruangan.');
@@ -21,7 +21,7 @@ class RuanganController extends Controller
 
     private function authorizeOperasional()
     {
-        abort_unless(Auth::user()->isAdminGedung(), 403, 'Super Admin hanya memantau. CRUD ruangan dikelola Admin Gedung.');
+        abort_unless(Auth::user()->isAdminGedung(), 403, 'Super Admin hanya memantau. CRUD ruangan dikelola Kepala Unit.');
     }
 
     private function ruanganQuery()
@@ -146,7 +146,7 @@ class RuanganController extends Controller
                     'name' => $row['nama'],
                     'email' => $row['email'],
                     'password' => Hash::make($row['password']),
-                    'role' => 'Admin Ruangan',
+                    'role' => 'Laboran',
                     'gedung_id' => $ruangan->gedung_id,
                     'ruangan_id' => $ruangan->id,
                 ]);

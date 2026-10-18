@@ -15,10 +15,10 @@ class PeminjamanController extends Controller
 {
     private function authorizeOperasional()
     {
-        abort_if(Auth::user()->isSuperAdmin(), 403, 'Super Admin hanya memantau. Peminjaman dikelola Admin Gedung/Ruangan.');
+        abort_if(Auth::user()->isSuperAdmin(), 403, 'Super Admin hanya memantau. Peminjaman dikelola Kepala Unit/Laboran.');
     }
 
-    // Scope: Super Admin semua, Admin Gedung se-gedung, Admin Ruangan se-ruangan
+    // Scope: Super Admin semua, Kepala Unit se-gedung, Laboran se-ruangan
     private function query()
     {
         $query = Peminjaman::with('barang');

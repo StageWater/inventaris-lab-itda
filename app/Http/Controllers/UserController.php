@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    // Super Admin: semua. Admin Gedung: gedungnya saja. Admin Ruangan: ditolak.
+    // Super Admin: semua. Kepala Unit: gedungnya saja. Laboran: ditolak.
     private function authorizeKelolaUser()
     {
         abort_if(Auth::user()->isAdminRuangan(), 403, 'Anda tidak memiliki akses untuk mengelola pengguna.');
@@ -57,6 +57,9 @@ class UserController extends Controller
                     ->orWhere('email', 'like', "%$katakunci%");
             });
         }
+        if ($request->filled('role') && in_array($request->role, ['Super Admin', 'Kepala Unit', 'Laboran'])) {
+            $query->where('role', $request->role);
+        }
         $users = $query->orderBy('name')->paginate(15)->withQueryString();
         return view('users.index', compact('users'));
     }
@@ -82,14 +85,16 @@ class UserController extends Controller
             'password' => 'required|min:6',
             'ruangan_id' => 'nullable|exists:ruangans,id',
             'gedung_id' => 'nullable|exists:gedungs,id',
-            'role' => 'nullable|in:Super Admin,Admin Gedung,Admin Ruangan',
+            'role' => 'nullable|in:Super Admin,Kepala Unit,Laboran',
         ]);
 
-        $role = $request->role ?: ($request->ruangan_id ? 'Admin Ruangan' : 'Super Admin');
+        $role = $request->role ?: ($request->ruangan_id ? 'Laboran' : 'Super Admin');
         if ($me->isAdminGedung()) {
-            $role = 'Admin Ruangan';
+            $role = 'Laboran';
             abort_unless(in_array($request->ruangan_id, $me->ruanganIds()), 403);
         }
+        // Kepala Unit / Super Admin tak pakai ruangan; buang kiriman ruangan agar tak jadi data mati.
+        $ruanganId = $role === 'Laboran' ? ($request->ruangan_id ?: null) : null;
 
         User::create([
             'name' => $request->name,
@@ -100,7 +105,7 @@ class UserController extends Controller
             // orang yang memegang 2 ruangan, ganti ke pivot user_ruangan + scope
             // per ruangan; jangan tambah kolom kedua (mis. ruangan_id_2).
             'gedung_id' => $me->isAdminGedung() ? $me->gedung_id : ($request->gedung_id ?: null),
-            'ruangan_id' => $request->ruangan_id ?: null,
+            'ruangan_id' => $ruanganId,
         ]);
 
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil ditambahkan.');
@@ -126,6 +131,10 @@ class UserController extends Controller
         $me = Auth::user();
         abort_if($me->isAdminGedung() && ! in_array($user->ruangan_id, $me->ruanganIds()) && $user->gedung_id !== $me->gedung_id, 403);
         $ruanganBaru = $request->ruangan_id ?: null;
+        // Peran non-ruangan tak pakai ruangan; buang agar tak jadi data mati (form sudah disable, ini backstop).
+        if ($me->isSuperAdmin() && $request->filled('role') && $request->role !== 'Laboran') {
+            $ruanganBaru = null;
+        }
         if ($me->isAdminGedung()) {
             abort_if($ruanganBaru && ! in_array($ruanganBaru, $me->ruanganIds()), 403);
         }
@@ -135,12 +144,12 @@ class UserController extends Controller
             return back()->with('error', $error)->withInput();
         }
 
-        // cekAdminTerakhir() cuma jaga tier Admin Ruangan. Tanpa baris ini
+        // cekAdminTerakhir() cuma jaga tier Laboran. Tanpa baris ini
         // Super Admin terakhir bisa menurunkan dirinya sendiri, dan tidak ada
         // lagi yang bisa mengelola pengguna, ruangan, maupun surat bebas lab --
         // pemulihannya harus lewat edit database.
         // Guard Super Admin terakhir: hitung by role, bukan by ruangan null --
-        // Admin Gedung juga ruangan_id null dan ikut kehitung kalau pakai whereNull.
+        // Kepala Unit juga ruangan_id null dan ikut kehitung kalau pakai whereNull.
         if ($user->isSuperAdmin()
             && ($ruanganBaru !== null || ($request->filled('role') && $request->role !== 'Super Admin'))
             && !User::where('role', 'Super Admin')->where('id', '!=', $user->id)->exists()) {
@@ -153,7 +162,7 @@ class UserController extends Controller
             'password' => 'nullable|min:6',
             'ruangan_id' => 'nullable|exists:ruangans,id',
             'gedung_id' => 'nullable|exists:gedungs,id',
-            'role' => 'nullable|in:Super Admin,Admin Gedung,Admin Ruangan',
+            'role' => 'nullable|in:Super Admin,Kepala Unit,Laboran',
         ]);
 
         $data = [
@@ -165,7 +174,7 @@ class UserController extends Controller
         if ($me->isSuperAdmin() && $request->filled('role')) {
             $data['role'] = $request->role;
         } elseif ($ruanganBaru) {
-            $data['role'] = 'Admin Ruangan';
+            $data['role'] = 'Laboran';
         }
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);

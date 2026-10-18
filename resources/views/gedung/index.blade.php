@@ -7,7 +7,7 @@
 @section('content')
 <div class="mb-6">
     <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Kelola Gedung</h2>
-    <p class="text-sm text-slate-500 mt-1">Satu gedung = satu Admin Gedung. Isi ruangan lewat Kelola Ruangan.</p>
+    <p class="text-sm text-slate-500 mt-1">Satu gedung = satu Kepala Unit. Isi ruangan lewat Kelola Ruangan.</p>
 </div>
 
 <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl mb-6">

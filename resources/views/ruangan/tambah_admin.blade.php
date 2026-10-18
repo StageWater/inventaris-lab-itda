@@ -1,7 +1,7 @@
 @extends('layouts.app_simalab')
 
-@section('title', 'Tambah Admin Ruangan | SIMALAB ITDA')
-@section('header', 'Tambah Admin Ruangan')
+@section('title', 'Tambah Laboran | SIMALAB ITDA')
+@section('header', 'Tambah Laboran')
 @section('activeMenu', 'ruangan')
 
 @section('breadcrumbs')
@@ -23,7 +23,7 @@
             <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm flex items-start">
                 <i data-lucide="info" class="w-5 h-5 mt-0.5 mr-2 shrink-0 text-blue-600"></i>
                 <span>
-                    <strong>{{ $ruangan->count() }} ruangan</strong> belum punya admin. Segera tugaskan Admin Ruangan agar operasional berjalan — Super Admin hanya memantau.
+                    <strong>{{ $ruangan->count() }} ruangan</strong> belum punya admin. Segera tugaskan Laboran agar operasional berjalan — Super Admin hanya memantau.
                     Isi nama, email, dan password-nya, lalu simpan sekali jalan. Baris yang dikosongkan akan dilewati.
                 </span>
             </div>

@@ -24,7 +24,7 @@ class RoleScopeBoundary
             return $next($request);
         }
 
-        if ($user->role === 'Admin Gedung') {
+        if ($user->role === 'Kepala Unit') {
             if (! $user->gedung_id) {
                 abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada gedung ini');
             }
@@ -36,7 +36,7 @@ class RoleScopeBoundary
             return $next($request);
         }
 
-        if ($user->role === 'Admin Ruangan') {
+        if ($user->role === 'Laboran') {
             if (! $user->ruangan_id) {
                 abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada ruangan ini');
             }

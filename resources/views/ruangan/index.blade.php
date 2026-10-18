@@ -21,7 +21,7 @@
     <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-lg text-sm">
         <span class="flex items-start">
             <i data-lucide="user-x" class="w-5 h-5 mt-0.5 mr-2 shrink-0 text-amber-600"></i>
-            <span><strong>{{ $tanpaAdmin }} ruangan</strong> belum punya admin, segera tugaskan Admin Ruangan.</span>
+            <span><strong>{{ $tanpaAdmin }} ruangan</strong> belum punya admin, segera tugaskan Laboran.</span>
         </span>
         <a href="{{ route('ruangan.admin.form') }}" class="inline-flex items-center justify-center shrink-0 rounded-md text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 shadow-sm h-9 px-4">
             <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Isi Admin Sekarang
@@ -38,6 +38,9 @@
         </div>
     </form>
 
+    @if($ruangan->total() > 0)
+    <p class="text-sm text-slate-500 mb-3">Menampilkan {{ $ruangan->firstItem() }}–{{ $ruangan->lastItem() }} dari {{ $ruangan->total() }} ruangan</p>
+    @endif
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto hidden md:block">
             <table class="w-full text-sm text-left text-slate-600">

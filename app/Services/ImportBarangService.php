@@ -23,7 +23,7 @@ class ImportBarangService
 
         $kategori ??= $this->kategoriFromFilename(basename($filePath));
         $this->roomSeq = (Ruangan::max('id') ?? 0) + 1;
-        // Admin Gedung: injeksikan gedungnya agar ruangan baru langsung masuk scope-nya.
+        // Kepala Unit: injeksikan gedungnya agar ruangan baru langsung masuk scope-nya.
         // Super Admin: gedungId null -> roomId() menolak ruangan baru (throw) agar tak orphan.
         $me = Auth::user();
         $this->gedungId = ($me && $me->isAdminGedung()) ? $me->gedung_id : null;
@@ -105,7 +105,7 @@ class ImportBarangService
         if ($ruangan = Ruangan::where('nama_ruangan', $nama)->first()) {
             return $ruangan->id;
         }
-        // ponytail: tolak ruangan baru tanpa gedung; orphan gedung null tak terlihat Admin Gedung mana pun.
+        // ponytail: tolak ruangan baru tanpa gedung; orphan gedung null tak terlihat Kepala Unit mana pun.
         throw new \RuntimeException("Ruangan baru '{$nama}' tanpa gedung. Buatkan dulu via Kelola Ruangan (isi Gedung) sebelum import.");
     }
 

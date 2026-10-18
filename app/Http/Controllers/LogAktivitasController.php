@@ -12,7 +12,7 @@ class LogAktivitasController extends Controller
     {
         $query = LogAktivitas::with('user')->latest();
 
-        // Scope 3-tier: Admin Ruangan se-ruangan, Admin Gedung se-gedung
+        // Scope 3-tier: Laboran se-ruangan, Kepala Unit se-gedung
         if (! is_null($ids = Auth::user()->ruanganIds())) {
             $me = Auth::user();
             $query->where(function ($q) use ($me, $ids) {

@@ -34,6 +34,7 @@ class DashboardController extends Controller
         $pinjam = Peminjaman::where('status_pinjam', 'Dipinjam')
             ->whereHas('barang', fn ($q) => is_null($ids) ? $q : $q->whereIn('ruangan_id', $ids ?: [0]));
         $peminjaman_aktif = $pinjam->count();
+        $peminjaman_terlambat = (clone $pinjam)->whereNotNull('tanggal_batas')->whereDate('tanggal_batas', '<', now()->toDateString())->count();
 
         // ponytail: PermohonanSurat tanpa ruangan_id/gedung_id jadi hitungan
         // global untuk semua role; tambah kolom scope bila perlu dibatasi.
@@ -42,8 +43,8 @@ class DashboardController extends Controller
         $total_gedung = $user->isSuperAdmin() ? Gedung::count() : ($user->isAdminGedung() ? 1 : 0);
         $total_ruangan = is_null($ids) ? Ruangan::count() : count($ids);
 
-        // ponytail: 1 query withCount, hanya Admin Gedung (Super Admin global,
-        // Admin Ruangan cuma 1 baris jadi tak perlu tabel).
+        // ponytail: 1 query withCount, hanya Kepala Unit (Super Admin global,
+        // Laboran cuma 1 baris jadi tak perlu tabel).
         $perRuangan = $user->isAdminGedung()
             ? Ruangan::withCount('barangs')->whereIn('id', $ids ?: [0])->orderBy('nama_ruangan')->get()
             : collect();
@@ -59,6 +60,6 @@ class DashboardController extends Controller
         }
         $logAktivitas = $log->latest()->take(5)->get();
 
-        return view('dashboard', compact('total_barang', 'barang_tersedia', 'barang_dipinjam', 'barang_rusak', 'logAktivitas', 'peminjaman_aktif', 'permohonan_pending', 'total_gedung', 'total_ruangan', 'perRuangan'));
+        return view('dashboard', compact('total_barang', 'barang_tersedia', 'barang_dipinjam', 'barang_rusak', 'logAktivitas', 'peminjaman_aktif', 'peminjaman_terlambat', 'permohonan_pending', 'total_gedung', 'total_ruangan', 'perRuangan'));
     }
 }

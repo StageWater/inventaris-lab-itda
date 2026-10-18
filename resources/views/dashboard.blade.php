@@ -18,6 +18,13 @@
         </div>
     </div>
 
+    @if(($peminjaman_terlambat ?? 0) > 0)
+    <a href="{{ route('peminjaman.index', ['terlambat' => 1]) }}" class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 rounded-xl border border-rose-200 bg-rose-50 px-5 py-3.5 text-sm text-rose-900 hover:bg-rose-100/70 transition-colors">
+        <span class="flex items-center font-semibold"><i data-lucide="alert-triangle" class="w-5 h-5 mr-2 shrink-0 text-rose-600"></i> {{ $peminjaman_terlambat }} peminjaman melewati batas waktu</span>
+        <span class="sm:ml-auto font-semibold text-rose-700 hover:text-rose-900 underline shrink-0">Lihat yang terlambat →</span>
+    </a>
+    @endif
+
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6" data-reveal-stagger>
         <a href="{{ route('barang.index') }}" class="block rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all group">
             <div class="p-6 flex flex-row items-center justify-between pb-2">

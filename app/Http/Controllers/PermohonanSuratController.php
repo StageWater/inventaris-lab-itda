@@ -152,6 +152,13 @@ class PermohonanSuratController extends Controller
             return back()->with('error', 'Nomor surat harus diisi terlebih dahulu sebelum mencetak.');
         }
 
+        // ponytail: cek ulang saat cetak (bukan cuma saat ajukan); pinjam setelah ajukan tetap ketahuan. Detail gedung/ruangan agar Super Admin tak perlu buka 2 menu.
+        $tanggungan = Peminjaman::with('barang.ruangan.gedung')->where('nim', $surat->nim)->where('status_pinjam', 'Dipinjam')->get();
+        if ($tanggungan->isNotEmpty()) {
+            $rinci = $tanggungan->map(fn ($p) => ($p->barang->kode_barang ?? '#'.$p->barang_id).' - '.($p->barang->nama_barang ?? '-').' ('.($p->barang->ruangan->nama_ruangan ?? '-').' / '.($p->barang->ruangan->gedung->nama_gedung ?? '-').')')->implode('; ');
+            return back()->with('error', "Tidak bisa dicetak: NIM {$surat->nim} masih meminjam: {$rinci}.");
+        }
+
         $surat->update(['status' => 'Sudah Dicetak']);
         LogAktivitas::catat('Mencetak Surat Bebas Lab', "Surat bebas lab NIM {$surat->nim} (nomor {$surat->nomor_surat}) dicetak.");
 

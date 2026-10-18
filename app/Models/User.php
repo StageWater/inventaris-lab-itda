@@ -67,12 +67,12 @@ class User extends Authenticatable
 
     public function isAdminGedung(): bool
     {
-        return $this->role === 'Admin Gedung';
+        return $this->role === 'Kepala Unit';
     }
 
     public function isAdminRuangan(): bool
     {
-        return $this->role === 'Admin Ruangan';
+        return $this->role === 'Laboran';
     }
 
     // ponytail: null = semua ruangan (Super Admin). Array kosong = tak ada akses.

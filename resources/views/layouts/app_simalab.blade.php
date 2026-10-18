@@ -57,8 +57,22 @@
         html.dark .hover\:bg-white:hover { background-color: #1e293b !important; }
         html.dark .hover\:bg-slate-50:hover, html.dark .hover\:bg-slate-100:hover { background-color: #334155 !important; }
         html.dark .bg-slate-900\/60 { background-color: rgb(2 6 23 / 0.75) !important; }
-        .anim-reveal { opacity: 0; transform: translateY(16px); transition: opacity .45s ease, transform .45s ease; }
-        .anim-reveal.is-visible { opacity: 1; transform: translateY(0); }
+        @media (min-width: 1024px) {
+            #sidebar { transition: width .2s ease; }
+            body.sidebar-mini #sidebar { width: 5rem; }
+            body.sidebar-mini #sidebar .sidebar-label,
+            body.sidebar-mini #sidebar .sidebar-logo-text,
+            body.sidebar-mini #sidebar .sidebar-profile-text,
+            body.sidebar-mini #sidebar .sidebar-logout-text,
+            body.sidebar-mini #sidebar .sidebar-chevron { display: none; }
+            body.sidebar-mini #sidebar nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+            body.sidebar-mini #sidebar nav a i { margin-right: 0 !important; }
+            body.sidebar-mini #sidebar .sidebar-logo-wrap { justify-content: center; padding-left: 0; padding-right: 0; }
+            body.sidebar-mini #sidebar .sidebar-logo-wrap .logo-badge { margin-right: 0 !important; }
+            body.sidebar-mini #sidebar .sidebar-profile-link { justify-content: center; }
+            body.sidebar-mini #sidebar button[type="submit"] i { margin-right: 0 !important; }
+        }
+        .anim-reveal { opacity: 0; transform: translateY(16px); transition: opacity .45s ease, transform .45s ease; }        .anim-reveal.is-visible { opacity: 1; transform: translateY(0); }
         .anim-reveal-fade { opacity: 0; transition: opacity .45s ease; }
         .anim-reveal-fade.is-visible { opacity: 1; }
         @media (prefers-reduced-motion: reduce) {
@@ -81,12 +95,12 @@
     <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex h-full w-64 max-w-[85vw] flex-col bg-white border-r border-slate-200 transform -translate-x-full transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:transition-none">
 
-        <div class="h-20 flex items-center px-5 border-b border-slate-200 bg-blue-950 shrink-0">
-            <div class="w-11 h-11 bg-white rounded-full flex items-center justify-center p-1 mr-3 shadow-md shrink-0">
+        <div class="sidebar-logo-wrap h-20 flex items-center px-5 border-b border-slate-200 bg-blue-950 shrink-0">
+            <div class="logo-badge w-11 h-11 bg-white rounded-full flex items-center justify-center p-1 mr-3 shadow-md shrink-0">
                 <img src="{{ asset('logo-itda.png') }}" alt="Logo ITDA" class="w-full h-full object-contain" onerror="this.style.display='none'; document.getElementById('ikon-cadangan').style.display='block';">
                 <i id="ikon-cadangan" data-lucide="plane" class="text-blue-800 w-6 h-6 hidden"></i>
             </div>
-<div class="flex flex-col min-w-0">
+<div class="sidebar-logo-text flex flex-col min-w-0">
                 <span class="font-bold text-lg tracking-tight text-white leading-tight">SIMALAB<span class="text-blue-400 font-normal">.</span></span>
                 <span class="text-[9px] text-blue-200 uppercase tracking-widest mt-0.5">Dirgantara Adisutjipto</span>
             </div>
@@ -96,58 +110,58 @@
         </div>
 
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-            <a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'dashboard' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3 {{ $activeMenu === 'dashboard' ? 'text-blue-700' : 'text-slate-400' }}"></i> Dashboard
+            <a href="{{ route('dashboard') }}" title="Dashboard" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'dashboard' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3 {{ $activeMenu === 'dashboard' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Dashboard</span>
             </a>
 
             @if($canKelola)
-            <a href="{{ route('ruangan.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'ruangan' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="door-open" class="w-4 h-4 mr-3 {{ $activeMenu === 'ruangan' ? 'text-blue-700' : 'text-slate-400' }}"></i> Kelola Ruangan
+            <a href="{{ route('ruangan.index') }}" title="Kelola Ruangan" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'ruangan' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="door-open" class="w-4 h-4 mr-3 {{ $activeMenu === 'ruangan' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Kelola Ruangan</span>
             </a>
-            <a href="{{ route('users.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'users' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="users" class="w-4 h-4 mr-3 {{ $activeMenu === 'users' ? 'text-blue-700' : 'text-slate-400' }}"></i> Kelola Pengguna
+            <a href="{{ route('users.index') }}" title="Kelola Pengguna" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'users' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="users" class="w-4 h-4 mr-3 {{ $activeMenu === 'users' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Kelola Pengguna</span>
             </a>
             @endif
             @if($isSuperAdmin)
-            <a href="{{ route('gedung.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'gedung' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="building-2" class="w-4 h-4 mr-3 {{ $activeMenu === 'gedung' ? 'text-blue-700' : 'text-slate-400' }}"></i> Kelola Gedung
+            <a href="{{ route('gedung.index') }}" title="Kelola Gedung" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'gedung' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="building-2" class="w-4 h-4 mr-3 {{ $activeMenu === 'gedung' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Kelola Gedung</span>
             </a>
             @endif
 
-            <a href="{{ route('barang.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'barang' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="box" class="w-4 h-4 mr-3 {{ $activeMenu === 'barang' ? 'text-blue-700' : 'text-slate-400' }}"></i> Data Barang
+            <a href="{{ route('barang.index') }}" title="Data Barang" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'barang' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="box" class="w-4 h-4 mr-3 {{ $activeMenu === 'barang' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Data Barang</span>
             </a>
 
-            <a href="{{ route('peminjaman.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'peminjaman' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="arrow-right-left" class="w-4 h-4 mr-3 {{ $activeMenu === 'peminjaman' ? 'text-blue-700' : 'text-slate-400' }}"></i> Peminjaman
+            <a href="{{ route('peminjaman.index') }}" title="Peminjaman" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'peminjaman' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="arrow-right-left" class="w-4 h-4 mr-3 {{ $activeMenu === 'peminjaman' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Peminjaman</span>
             </a>
 
             @if($isSuperAdmin)
-            <a href="{{ route('permohonan.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'permohonan' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="file-check" class="w-4 h-4 mr-3 {{ $activeMenu === 'permohonan' ? 'text-blue-700' : 'text-slate-400' }}"></i> Surat Bebas Lab
+            <a href="{{ route('permohonan.index') }}" title="Surat Bebas Lab" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'permohonan' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="file-check" class="w-4 h-4 mr-3 {{ $activeMenu === 'permohonan' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Surat Bebas Lab</span>
             </a>
             @endif
 
-            <a href="{{ route('log.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'log' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="history" class="w-4 h-4 mr-3 {{ $activeMenu === 'log' ? 'text-blue-700' : 'text-slate-400' }}"></i> Riwayat Aktivitas
+            <a href="{{ route('log.index') }}" title="Riwayat Aktivitas" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'log' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="history" class="w-4 h-4 mr-3 {{ $activeMenu === 'log' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Riwayat Aktivitas</span>
             </a>
         </nav>
 
         <div class="p-4 border-t border-slate-200 bg-slate-50/50">
-            <a href="{{ route('profile.edit') }}" class="flex items-center mb-4 group rounded-lg p-2 -m-2 hover:bg-white transition-colors">
+            <a href="{{ route('profile.edit') }}" title="Profil Saya" class="sidebar-profile-link flex items-center mb-4 group rounded-lg p-2 -m-2 hover:bg-white transition-colors">
                 <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0">
                     {{ substr($user->name, 0, 1) }}
                 </div>
-                <div class="ml-3 min-w-0 flex-1">
+                <div class="sidebar-profile-text ml-3 min-w-0 flex-1">
                     <p class="text-sm font-semibold text-slate-800 truncate group-hover:text-blue-700 transition-colors">{{ $user->name }}</p>
                     <p class="text-[11px] text-slate-500 font-medium">{{ $user->role ?? ($isSuperAdmin ? 'Super Admin' : 'Admin Ruang') }}</p>
                 </div>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors shrink-0"></i>
+                <i data-lucide="chevron-right" class="sidebar-chevron w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors shrink-0"></i>
             </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-md transition-colors border border-rose-100">
-                    <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Keluar Sistem
+                    <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> <span class="sidebar-logout-text">Keluar Sistem</span>
                 </button>
             </form>
         </div>
@@ -158,6 +172,9 @@
         <header class="h-16 bg-white border-b border-slate-200 flex items-center gap-3 px-4 sm:px-6 lg:px-8 shrink-0">
             <button id="menu-open" type="button" class="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Buka menu">
                 <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <button id="sidebar-collapse" type="button" class="hidden lg:inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Ciutkan menu" title="Ciutkan / bentangkan menu">
+                <i data-lucide="panel-left" class="w-5 h-5"></i>
             </button>
             <div class="min-w-0">
                 <nav class="flex items-center text-xs text-slate-500 mb-0.5 whitespace-nowrap overflow-hidden">
@@ -214,6 +231,15 @@
         backdrop.addEventListener('click', () => setMenu(false));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 
+        // Collapse desktop: ikon saja, tersimpan per browser.
+        if (localStorage.getItem('simalab-sidebar') === 'mini') {
+            document.body.classList.add('sidebar-mini');
+        }
+        document.getElementById('sidebar-collapse')?.addEventListener('click', () => {
+            const mini = document.body.classList.toggle('sidebar-mini');
+            localStorage.setItem('simalab-sidebar', mini ? 'mini' : 'full');
+        });
+
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             document.querySelectorAll('.anim-reveal, .anim-reveal-fade').forEach(el => el.classList.add('is-visible'));
         } else {
@@ -247,6 +273,23 @@
                 applyTheme();
             });
         }
+
+        // Alert sukses/error hilang sendiri 5 detik.
+        document.querySelectorAll('#app-content [role="alert"]').forEach((el) => {
+            el.style.transition = 'opacity .4s ease';
+            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 450); }, 5000);
+        });
+
+        // Anti double-submit: kunci tombol kirim begitu form lolos validasi.
+        document.addEventListener('submit', (e) => {
+            const form = e.target;
+            if (!(form instanceof HTMLFormElement)) return;
+            if (!form.checkValidity()) return;
+            const btn = form.querySelector('[type="submit"]');
+            if (!btn || btn.disabled) return;
+            btn.disabled = true;
+            btn.classList.add('opacity-70', 'pointer-events-none');
+        });
 
         lucide.createIcons();
     </script>

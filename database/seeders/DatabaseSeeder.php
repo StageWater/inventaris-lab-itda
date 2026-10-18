@@ -44,11 +44,11 @@ class DatabaseSeeder extends Seeder
         );
         $adminRpl1 = User::firstOrCreate(
             ['email' => 'admin.rpl1@itda.ac.id'],
-            ['name' => 'Admin Lab Komputer 1', 'password' => Hash::make('password123'), 'role' => 'Admin Ruangan', 'gedung_id' => null, 'ruangan_id' => $ruanganIds['RPL-1']]
+            ['name' => 'Admin Lab Komputer 1', 'password' => Hash::make('password123'), 'role' => 'Laboran', 'gedung_id' => null, 'ruangan_id' => $ruanganIds['RPL-1']]
         );
         $adminRpl2 = User::firstOrCreate(
             ['email' => 'admin.rpl2@itda.ac.id'],
-            ['name' => 'Admin Lab Komputer 2', 'password' => Hash::make('password123'), 'role' => 'Admin Ruangan', 'gedung_id' => null, 'ruangan_id' => $ruanganIds['RPL-2']]
+            ['name' => 'Admin Lab Komputer 2', 'password' => Hash::make('password123'), 'role' => 'Laboran', 'gedung_id' => null, 'ruangan_id' => $ruanganIds['RPL-2']]
         );
 
         // 3. BARANG

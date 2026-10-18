@@ -16,7 +16,7 @@ class BarangController extends Controller
 {
     private function authorizeOperasional()
     {
-        abort_if(Auth::user()->isSuperAdmin(), 403, 'Super Admin hanya memantau. Operasional barang dikelola Admin Gedung/Ruangan.');
+        abort_if(Auth::user()->isSuperAdmin(), 403, 'Super Admin hanya memantau. Operasional barang dikelola Kepala Unit/Laboran.');
     }
 
     private function query()
@@ -210,13 +210,13 @@ if ($status = $request->status) {
 
     public function import()
     {
-        abort_unless(Auth::user()->isSuperAdmin() || Auth::user()->isAdminGedung(), 403, 'Hanya Super Admin / Admin Gedung yang bisa mengimport data.');
+        abort_unless(Auth::user()->isSuperAdmin() || Auth::user()->isAdminGedung(), 403, 'Hanya Super Admin / Kepala Unit yang bisa mengimport data.');
         return view('barang.import');
     }
 
     public function importData(Request $request)
     {
-        abort_unless(Auth::user()->isSuperAdmin() || Auth::user()->isAdminGedung(), 403, 'Hanya Super Admin / Admin Gedung yang bisa mengimport data.');
+        abort_unless(Auth::user()->isSuperAdmin() || Auth::user()->isAdminGedung(), 403, 'Hanya Super Admin / Kepala Unit yang bisa mengimport data.');
 
         $request->validate([
             'file' => 'required|file|mimes:xls,xlsx,csv',

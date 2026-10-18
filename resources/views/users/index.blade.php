@@ -8,7 +8,7 @@
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
         <div>
             <h2 class="text-xl sm:text-2xl font-bold text-blue-950">Kelola Pengguna</h2>
-            <p class="text-sm text-slate-500 mt-1">Kelola akun Super Admin, Admin Gedung, dan Admin Ruangan.</p>
+            <p class="text-sm text-slate-500 mt-1">Kelola akun Super Admin, Kepala Unit, dan Laboran.</p>
         </div>
         <a href="{{ route('users.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-semibold transition-all bg-blue-700 text-white hover:bg-blue-800 shadow-sm h-10 px-5 flex-1 sm:flex-none">
             <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Tambah Pengguna
@@ -16,11 +16,26 @@
     </div>
 
     <form method="GET" action="{{ route('users.index') }}" class="mb-4">
-        <div class="relative w-full md:max-w-sm">
-            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-            <input type="text" name="katakunci" value="{{ request('katakunci') }}" placeholder="Cari nama / email pengguna..."
-                class="w-full pl-10 pr-20 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
-            <button type="submit" class="absolute right-1.5 top-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-md">Cari</button>
+        <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div class="relative w-full md:max-w-sm flex-1">
+                <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                <input type="text" name="katakunci" value="{{ request('katakunci') }}" placeholder="Cari nama / email pengguna..."
+                    class="w-full pl-10 pr-20 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
+                <button type="submit" class="absolute right-1.5 top-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-md">Cari</button>
+            </div>
+            <div class="sm:w-56">
+                <select name="role" onchange="this.form.submit()" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                    <option value="">-- Semua Peran --</option>
+                    @foreach(['Super Admin', 'Kepala Unit', 'Laboran'] as $r)
+                        <option value="{{ $r }}" {{ request('role') === $r ? 'selected' : '' }}>{{ $r }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @if(request('role'))
+            <a href="{{ route('users.index', array_filter(['katakunci' => request('katakunci')])) }}" class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 h-10 px-4">
+                Reset
+            </a>
+            @endif
         </div>
     </form>
 
@@ -47,8 +62,8 @@
                         </td>
                         <td class="px-6 py-4">{{ $item->email }}</td>
                         <td class="px-6 py-4">
-                            @php($role = $item->role ?? ($item->ruangan_id === null ? 'Super Admin' : 'Admin Ruangan'))
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $role === 'Super Admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : ($role === 'Admin Gedung' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
+                            @php($role = $item->role ?? ($item->ruangan_id === null ? 'Super Admin' : 'Laboran'))
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $role === 'Super Admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : ($role === 'Kepala Unit' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
                                 {{ $role }}
                             </span>
                         </td>
@@ -95,8 +110,8 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 border-t border-slate-100 pt-3">
-                    @php($role = $item->role ?? ($item->ruangan_id === null ? 'Super Admin' : 'Admin Ruangan'))
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $role === 'Super Admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : ($role === 'Admin Gedung' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
+                    @php($role = $item->role ?? ($item->ruangan_id === null ? 'Super Admin' : 'Laboran'))
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $role === 'Super Admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : ($role === 'Kepala Unit' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
                         {{ $role }}
                     </span>
                     <span>
