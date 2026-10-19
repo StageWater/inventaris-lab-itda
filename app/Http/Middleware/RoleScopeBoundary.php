@@ -26,11 +26,11 @@ class RoleScopeBoundary
 
         if ($user->role === 'Kepala Unit') {
             if (! $user->gedung_id) {
-                abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada gedung ini');
+                abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada unit ini');
             }
             $wanted = $this->requestedGedungId($request);
             if ($wanted !== null && (int) $wanted !== (int) $user->gedung_id) {
-                abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada gedung ini');
+                abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada unit ini');
             }
 
             return $next($request);
@@ -38,11 +38,11 @@ class RoleScopeBoundary
 
         if ($user->role === 'Laboran') {
             if (! $user->ruangan_id) {
-                abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada ruangan ini');
+                abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada lab ini');
             }
             $wanted = $this->requestedRuanganId($request);
             if ($wanted !== null && (int) $wanted !== (int) $user->ruangan_id) {
-                abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada ruangan ini');
+                abort(403, 'Akses ditolak: Anda tidak memiliki otoritas pada lab ini');
             }
 
             return $next($request);
@@ -101,7 +101,7 @@ class RoleScopeBoundary
         }
 
         // Turunan: ruangan/barang -> petakan ke gedung pemiliknya.
-        // ponytail: ruangan legacy tanpa gedung (null) lolos di sini; backstop-nya
+        // ponytail: ruangan legacy tanpa unit (null) lolos di sini; backstop-nya
         // tetap ruanganIds() di controller sampai 31 ruangan lama diisi gedungnya.
         $ruanganId = $this->requestedRuanganId($request);
         if ($ruanganId !== null) {

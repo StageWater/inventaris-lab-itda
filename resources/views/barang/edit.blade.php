@@ -55,7 +55,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Lokasi Ruangan</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Lokasi Lab</label>
                         @if(! auth()->user()->isAdminRuangan())
                             <div class="relative">
                                 <select name="ruangan_id" required class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
@@ -68,7 +68,7 @@
                                 <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-slate-400 pointer-events-none"></i>
                             </div>
                         @else
-                            <input type="text" value="{{ $barang->ruangan->nama_ruangan ?? 'Ruang ' . $barang->ruangan_id }}" disabled
+                            <input type="text" value="{{ $barang->ruangan->nama_ruangan ?? 'Lab ' . $barang->ruangan_id }}" disabled
                                 class="w-full px-4 py-2.5 text-sm border border-slate-200 bg-slate-50 rounded-lg text-slate-500 cursor-not-allowed">
                         @endif
                     </div>

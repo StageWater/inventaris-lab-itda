@@ -15,6 +15,23 @@
             text-align: center; 
             margin-bottom: 5px; 
         }
+        .kop-tabel {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .kop-tabel td {
+            vertical-align: middle;
+            padding: 0;
+        }
+        .kop-tabel td.logo {
+            width: 80px;
+        }
+        .kop-tabel td.logo img {
+            width: 80px;
+        }
+        .kop-tabel td.judul {
+            text-align: center;
+        }
         .kop-surat h1 { 
             margin: 0; 
             font-size: 15pt; 
@@ -90,9 +107,17 @@
 
     <!-- KOP SURAT -->
     <div class="kop-surat">
-        <h1>LABORATORIUM TERPADU</h1>
-        <h1>ITD ADISUTJIPTO</h1>
-        <h2>SURAT KETERANGAN BEBAS PEMINJAMAN PERALATAN</h2>
+        <table class="kop-tabel">
+            <tr>
+                <td class="logo"><img src="{{ public_path('logo-itda.png') }}" alt="Logo ITDA"></td>
+                <td class="judul">
+                    <h1>LABORATORIUM TERPADU</h1>
+                    <h1>ITD ADISUTJIPTO</h1>
+                    <h2>SURAT KETERANGAN BEBAS PEMINJAMAN PERALATAN</h2>
+                </td>
+                <td class="logo"><img src="{{ public_path('YASAU.png') }}" alt="Logo YASAU"></td>
+            </tr>
+        </table>
     </div>
 
     <div class="garis-kop"></div>
@@ -107,8 +132,7 @@
         <p>Surat ini diberikan kepada yang telah menyelesaikan semua urusan administrasi atau peminjaman alat pada Lab. ITDA untuk :</p>
         
         <ol class="list-keperluan">
-            <li>Mengikuti Yudisium Bulan {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}</li>
-            <li>Mengambil Ijazah</li>
+            <li>Mengikuti Yudisium pada tanggal {{ \Carbon\Carbon::parse($tanggal_yudisium ?? now())->locale('id')->translatedFormat('d F Y') }}</li>
         </ol>
 
         <p>Identitas Mahasiswa :</p>
@@ -125,7 +149,7 @@
                 <td>{{ $nim }}</td>
             </tr>
             <tr>
-                <td class="label">Jurusan</td>
+                <td class="label">Prodi</td>
                 <td class="titik-dua">:</td>
                 <td>{{ $jurusan }}</td>
             </tr>
@@ -150,7 +174,7 @@
             <div class="nama-pejabat">
                 Riani Nurdin, S.T. M.Sc.
             </div>
-            <p>NIDN: 197510272005012001</p>
+            <p>NIP: 197510272005012001</p>
         </div>
     </div>
 

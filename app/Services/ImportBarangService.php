@@ -105,8 +105,8 @@ class ImportBarangService
         if ($ruangan = Ruangan::where('nama_ruangan', $nama)->first()) {
             return $ruangan->id;
         }
-        // ponytail: tolak ruangan baru tanpa gedung; orphan gedung null tak terlihat Kepala Unit mana pun.
-        throw new \RuntimeException("Ruangan baru '{$nama}' tanpa gedung. Buatkan dulu via Kelola Ruangan (isi Gedung) sebelum import.");
+        // ponytail: tolak ruangan baru tanpa unit; orphan gedung null tak terlihat Kepala Unit mana pun.
+        throw new \RuntimeException("Lab baru '{$nama}' tanpa unit. Buatkan dulu via Kelola Lab (isi Unit) sebelum import.");
     }
 
     private function kategoriFromFilename(string $file): string

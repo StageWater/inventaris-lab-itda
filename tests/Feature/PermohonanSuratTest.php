@@ -53,6 +53,7 @@ class PermohonanSuratTest extends TestCase
             'nama' => 'Mahasiswa Tanggungan',
             'jurusan' => 'TEKNIK INDUSTRI',
             'judul_skripsi' => 'Uji Efektivitas Peminjaman Alat Lab',
+            'tanggal_yudisium' => '2026-10-15',
         ])->assertSessionHasErrors('nim');
 
         $this->assertDatabaseMissing('permohonan_surats', ['nim' => '6200099']);
@@ -133,6 +134,21 @@ class PermohonanSuratTest extends TestCase
         ]);
     }
 
+    public function test_surat_mengambil_tanggal_yudisium_dari_mahasiswa_dan_tidak_menyebut_ambil_ijazah(): void
+    {
+        $html = view('peminjaman.cetak_surat_pdf', [
+            'nama' => 'Mahasiswa Yudisium',
+            'nim' => '6200066',
+            'jurusan' => 'TEKNIK INFORMATIKA',
+            'judul_skripsi' => 'Judul Skripsi',
+            'nomorSurat' => '012/Lab. Terpadu/ITDA/2026',
+            'tanggal_yudisium' => '2026-10-15',
+        ])->render();
+
+        $this->assertStringContainsString('Mengikuti Yudisium pada tanggal 15 Oktober 2026', $html);
+        $this->assertStringNotContainsString('Mengambil Ijazah', $html);
+    }
+
     public function test_nim_berbeda_tapi_nama_sama_ditolak_karena_biasanya_salah_ketik(): void
     {
         // NIM 230103119 vs 2310103119: satu orang, selisih satu digit. Uniqueness
@@ -149,6 +165,7 @@ class PermohonanSuratTest extends TestCase
             'nama' => '  syahrul yovi distyanto ', // beda kapital + spasi, tetap orang sama
             'jurusan' => 'TEKNIK INDUSTRI',
             'judul_skripsi' => 'Penerapan',
+            'tanggal_yudisium' => '2026-10-15',
         ])->assertSessionHasErrors('nim');
 
         $this->assertDatabaseMissing('permohonan_surats', ['nim' => '2310103119']);
@@ -163,6 +180,7 @@ class PermohonanSuratTest extends TestCase
             'nama' => 'Budi Santoso',
             'jurusan' => 'TEKNIK INDUSTRI',
             'judul_skripsi' => 'Judul Satu',
+            'tanggal_yudisium' => '2026-10-15',
         ])->assertSessionHasNoErrors();
 
         $this->post(route('permohonan.publik.store'), [
@@ -170,6 +188,7 @@ class PermohonanSuratTest extends TestCase
             'nama' => 'Budi Santoso',
             'jurusan' => 'TEKNIK INDUSTRI',
             'judul_skripsi' => 'Judul Dua',
+            'tanggal_yudisium' => '2026-10-15',
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseCount('permohonan_surats', 2);
@@ -248,6 +267,7 @@ class PermohonanSuratTest extends TestCase
             'nama' => 'Mahasiswa Spam '.$ke,
             'jurusan' => 'TEKNIK INDUSTRI',
             'judul_skripsi' => 'Judul '.$ke,
+            'tanggal_yudisium' => '2026-10-15',
         ]);
 
         $kirim(1)->assertSessionHasNoErrors();

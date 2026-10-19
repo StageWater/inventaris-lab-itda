@@ -75,8 +75,8 @@
 
             <dl class="divide-y divide-slate-100">
                 <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-1">
-                    <dt class="text-sm font-medium text-slate-400">Ruangan</dt>
-                    <dd class="text-sm font-medium text-slate-700">{{ $barang->ruangan->nama_ruangan ?? 'Ruang ' . $barang->ruangan_id }}</dd>
+                    <dt class="text-sm font-medium text-slate-400">Lab</dt>
+                    <dd class="text-sm font-medium text-slate-700">{{ $barang->ruangan->nama_ruangan ?? 'Lab ' . $barang->ruangan_id }}</dd>
                 </div>
                 <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-1">
                     <dt class="text-sm font-medium text-slate-400">Kategori</dt>

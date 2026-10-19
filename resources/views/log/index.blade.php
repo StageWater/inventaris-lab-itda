@@ -29,7 +29,7 @@
                         <th class="px-6 py-4 font-semibold tracking-wider">Waktu</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Aksi</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Deskripsi</th>
-                        <th class="px-6 py-4 font-semibold tracking-wider">Pelaku</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Pengguna</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">IP</th>
                     </tr>
                 </thead>

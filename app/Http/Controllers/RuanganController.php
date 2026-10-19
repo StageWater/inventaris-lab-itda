@@ -16,12 +16,12 @@ class RuanganController extends Controller
     // hanya Kepala Unit (scope gedung_id). Laboran: ditolak semua.
     private function authorizeKelolaRuangan()
     {
-        abort_if(Auth::user()->isAdminRuangan(), 403, 'Anda tidak memiliki akses untuk mengelola ruangan.');
+        abort_if(Auth::user()->isAdminRuangan(), 403, 'Anda tidak memiliki akses untuk mengelola lab.');
     }
 
     private function authorizeOperasional()
     {
-        abort_unless(Auth::user()->isAdminGedung(), 403, 'Super Admin hanya memantau. CRUD ruangan dikelola Kepala Unit.');
+        abort_unless(Auth::user()->isAdminGedung(), 403, 'Super Admin hanya memantau. CRUD lab dikelola Kepala Unit.');
     }
 
     private function ruanganQuery()
@@ -71,8 +71,8 @@ class RuanganController extends Controller
             $data['gedung_id'] = Auth::user()->gedung_id;
         }
         Ruangan::create($data);
-        LogAktivitas::catat('Tambah Ruangan', "Ruangan {$request->kode_ruangan} - {$request->nama_ruangan} ditambahkan.");
-        return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil ditambahkan.');
+        LogAktivitas::catat('Tambah Lab', "Lab {$request->kode_ruangan} - {$request->nama_ruangan} ditambahkan.");
+        return redirect()->route('ruangan.index')->with('success', 'Lab berhasil ditambahkan.');
     }
 
     public function edit(string $id)
@@ -101,7 +101,7 @@ class RuanganController extends Controller
         $this->authorizeKelolaRuangan();
 
         // Baris yang tidak diisi sama sekali dibuang, jadi form boleh dikirim
-        // setengah terisi: akun hanya dibuat untuk ruangan yang datanya diisi.
+        // setengah terisi: akun hanya dibuat untuk lab yang datanya diisi.
         $admin = array_filter(
             $request->input('admin', []),
             fn ($row) => filled($row['nama'] ?? null) || filled($row['email'] ?? null) || filled($row['password'] ?? null)
@@ -156,14 +156,14 @@ class RuanganController extends Controller
         });
 
         foreach ($baru as $namaRuangan) {
-            LogAktivitas::catat('Tambah Pengguna', "Admin untuk ruangan {$namaRuangan} ditambahkan.");
+            LogAktivitas::catat('Tambah Pengguna', "Admin untuk lab {$namaRuangan} ditambahkan.");
         }
 
         // Ruangan yang barusan diisi admin hilang dari form ini, jadi daftar
         // ini sekaligus jadi konfirmasi hasil. Tidak ada password yang perlu
         // disimpan di session.
         return redirect()->route('ruangan.admin.form')
-            ->with('success', count($baru).' akun admin ruangan berhasil dibuat.');
+            ->with('success', count($baru).' akun admin lab berhasil dibuat.');
     }
 
     public function update(Request $request, string $id)
@@ -182,8 +182,8 @@ class RuanganController extends Controller
             $data['gedung_id'] = $request->gedung_id ?: null;
         }
         $ruangan->update($data);
-        LogAktivitas::catat('Ubah Ruangan', "Ruangan {$request->kode_ruangan} - {$request->nama_ruangan} diperbarui.");
-        return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil diperbarui.');
+        LogAktivitas::catat('Ubah Lab', "Lab {$request->kode_ruangan} - {$request->nama_ruangan} diperbarui.");
+        return redirect()->route('ruangan.index')->with('success', 'Lab berhasil diperbarui.');
     }
 
     public function destroy(string $id)
@@ -193,17 +193,17 @@ class RuanganController extends Controller
 
         // Guard: mencegah penghapusan diam-diam semua barang via ON DELETE CASCADE
         if ($ruangan->barangs_count > 0) {
-            return back()->with('error', "Gagal! Ruangan {$ruangan->nama_ruangan} masih memiliki {$ruangan->barangs_count} barang. Pindahkan atau hapus barangnya terlebih dahulu.");
+            return back()->with('error', "Gagal! Lab {$ruangan->nama_ruangan} masih memiliki {$ruangan->barangs_count} barang. Pindahkan atau hapus barangnya terlebih dahulu.");
         }
 
         // Guard: jangan hapus ruangan yang masih punya admin -- tanpa ini FK nullOnDelete
         // diam-diam menaikkan admin ruangan jadi Super Admin.
         if ($ruangan->users_count > 0) {
-            return back()->with('error', "Gagal! Ruangan {$ruangan->nama_ruangan} masih memiliki {$ruangan->users_count} pengguna. Pindahkan atau hapus penggunanya terlebih dahulu.");
+            return back()->with('error', "Gagal! Lab {$ruangan->nama_ruangan} masih memiliki {$ruangan->users_count} pengguna. Pindahkan atau hapus penggunanya terlebih dahulu.");
         }
 
         $ruangan->delete();
-        LogAktivitas::catat('Hapus Ruangan', "Ruangan {$ruangan->kode_ruangan} - {$ruangan->nama_ruangan} dihapus.");
-        return redirect()->route('ruangan.index')->with('success', 'Ruangan berhasil dihapus.');
+        LogAktivitas::catat('Hapus Lab', "Lab {$ruangan->kode_ruangan} - {$ruangan->nama_ruangan} dihapus.");
+        return redirect()->route('ruangan.index')->with('success', 'Lab berhasil dihapus.');
     }
 }

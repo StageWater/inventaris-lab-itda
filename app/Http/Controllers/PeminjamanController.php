@@ -92,7 +92,6 @@ class PeminjamanController extends Controller
             'barang_id' => 'required|exists:barangs,id',
             'tanggal_pinjam' => 'required|date',
             'tanggal_pengembalian' => 'nullable|date',
-            'berkas' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'tanggal_batas' => 'nullable|date|after_or_equal:tanggal_pinjam'
         ]);
 
@@ -116,10 +115,6 @@ class PeminjamanController extends Controller
                 'tanggal_batas' => $request->tanggal_batas ?? Carbon::parse($request->tanggal_pinjam)->addDays(7)->toDateString(),
                 'status_pinjam' => 'Dipinjam'
             ];
-
-            if ($request->hasFile('berkas')) {
-                $data['berkas'] = $request->file('berkas')->store('berkas-peminjaman', 'public');
-            }
 
             Peminjaman::create($data);
 

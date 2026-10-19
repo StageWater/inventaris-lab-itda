@@ -51,6 +51,10 @@ if ($status = $request->status) {
             $query->where('status', $status);
         }
 
+        if ($kondisi = $request->kondisi) {
+            $query->where('kondisi', $kondisi);
+        }
+
         if ($request->rusak) {
             $query->whereIn('kondisi', ['Rusak Ringan', 'Rusak Berat']);
         }
@@ -101,8 +105,8 @@ if ($status = $request->status) {
 
         $request->validate($rules, [
             'kode_barang.unique' => 'Gagal! Kode Barang sudah terpakai.',
-            'ruangan_id.required' => 'Pilih lokasi ruangan terlebih dahulu.',
-            'ruangan_id.in' => 'Ruangan di luar wilayah akses Anda.'
+            'ruangan_id.required' => 'Pilih lokasi lab terlebih dahulu.',
+            'ruangan_id.in' => 'Lab di luar wilayah akses Anda.'
         ]);
 
         $data = $request->only(['kode_barang', 'nama_barang', 'kategori', 'kondisi']);
@@ -157,8 +161,8 @@ if ($status = $request->status) {
             }
         }
         $request->validate($rules, [
-            'ruangan_id.required' => 'Pilih lokasi ruangan terlebih dahulu.',
-            'ruangan_id.in' => 'Ruangan di luar wilayah akses Anda.'
+            'ruangan_id.required' => 'Pilih lokasi lab terlebih dahulu.',
+            'ruangan_id.in' => 'Lab di luar wilayah akses Anda.'
         ]);
 
         $data = $request->only(['kode_barang', 'nama_barang', 'kategori', 'kondisi']);
@@ -231,8 +235,8 @@ if ($status = $request->status) {
             return back()->with('error', 'Gagal mengimport file: ' . $e->getMessage());
         }
 
-        LogAktivitas::catat('Import Barang', "Import selesai: {$result['ruangan']} ruangan & {$result['barang']} barang.");
-        return redirect()->route('barang.index')->with('success', "Import berhasil: {$result['ruangan']} ruangan baru & {$result['barang']} barang.");
+        LogAktivitas::catat('Import Barang', "Import selesai: {$result['ruangan']} lab & {$result['barang']} barang.");
+        return redirect()->route('barang.index')->with('success', "Import berhasil: {$result['ruangan']} lab baru & {$result['barang']} barang.");
     }
 
     public function cetak_pdf()

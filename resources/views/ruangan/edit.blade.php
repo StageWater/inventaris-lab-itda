@@ -1,23 +1,23 @@
 @extends('layouts.app_simalab')
 
-@section('title', 'Edit Ruangan | SIMALAB ITDA')
-@section('header', 'Kelola Ruangan')
+@section('title', 'Edit Lab | SIMALAB ITDA')
+@section('header', 'Kelola Lab')
 @section('activeMenu', 'ruangan')
 
 @section('breadcrumbs')
-<a href="{{ route('ruangan.index') }}" class="hover:text-blue-700 transition-colors font-medium">Kelola Ruangan</a>
+<a href="{{ route('ruangan.index') }}" class="hover:text-blue-700 transition-colors font-medium">Kelola Lab</a>
 <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
 <span class="text-slate-700 font-medium">Edit</span>
 @endsection
 
 @section('content')
     <a href="{{ route('ruangan.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Kelola Ruangan
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Kelola Lab
     </a>
 
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl">
         <div class="p-6 border-b border-slate-200 bg-slate-50/50">
-            <h2 class="text-xl font-bold text-blue-950">Edit Ruangan</h2>
+            <h2 class="text-xl font-bold text-blue-950">Edit Lab</h2>
             <p class="text-sm text-slate-500 mt-1">Perbarui informasi lokasi laboratorium.</p>
         </div>
 
@@ -35,20 +35,20 @@
                 @method('PUT')
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Kode Ruangan</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Kode Lab</label>
                     <input type="text" name="kode_ruangan" value="{{ old('kode_ruangan', $ruangan->kode_ruangan) }}" required
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Ruangan</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lab</label>
                     <input type="text" name="nama_ruangan" value="{{ old('nama_ruangan', $ruangan->nama_ruangan) }}" required
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700">
                 </div>
                 @if(Auth::user()->isSuperAdmin())
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Gedung</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Unit</label>
                     <select name="gedung_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-700 bg-white">
-                        <option value="">Tanpa gedung</option>
+                        <option value="">Tanpa unit</option>
                         @foreach($gedung as $g)
                             <option value="{{ $g->id }}" {{ old('gedung_id', $ruangan->gedung_id) == $g->id ? 'selected' : '' }}>{{ $g->nama_gedung }}</option>
                         @endforeach

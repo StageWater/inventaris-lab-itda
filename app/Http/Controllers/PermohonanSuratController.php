@@ -65,6 +65,7 @@ class PermohonanSuratController extends Controller
             'nama' => 'required|string|max:255',
             'jurusan' => 'required|string|max:255',
             'judul_skripsi' => 'required|string|max:255',
+            'tanggal_yudisium' => 'required|date',
         ], [
             'nim.unique' => 'Pengajuan ditolak: NIM ini sudah pernah mengajukan surat bebas lab.',
         ]);
@@ -92,7 +93,7 @@ class PermohonanSuratController extends Controller
             ]);
         }
 
-        PermohonanSurat::create($request->only(['nim', 'nama', 'jurusan', 'judul_skripsi']));
+        PermohonanSurat::create($request->only(['nim', 'nama', 'jurusan', 'judul_skripsi', 'tanggal_yudisium']));
         LogAktivitas::catat('Pengajuan Surat Bebas Lab', "Mahasiswa {$request->nama} (NIM {$request->nim}) mengajukan surat bebas lab.");
 
         return redirect()->route('permohonan.publik')->with('status', 'Pengajuan berhasil dikirim. Silakan tunggu konfirmasi dari laboratorium.');
@@ -175,6 +176,7 @@ class PermohonanSuratController extends Controller
             'nim' => $surat->nim,
             'jurusan' => $surat->jurusan,
             'judul_skripsi' => $surat->judul_skripsi,
+            'tanggal_yudisium' => $surat->tanggal_yudisium,
             'nomorSurat' => $surat->nomor_surat,
         ]);
     }

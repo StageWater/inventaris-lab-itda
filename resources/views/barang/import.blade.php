@@ -19,7 +19,7 @@
         <div class="p-6 border-b border-slate-200 bg-slate-50/50">
             <h2 class="text-xl font-bold text-blue-950">Import Barang dari Excel</h2>
             <p class="text-sm text-slate-500 mt-1">
-                Unggah file inventaris (.xls / .xlsx). Setiap sheet / ruangan di dalam file akan dibuat sebagai ruangan baru,
+                Unggah file inventaris (.xls / .xlsx). Setiap sheet / lab di dalam file akan dibuat sebagai lab baru,
                 lalu setiap baris datanya masuk ke tabel barang.
             </p>
         </div>

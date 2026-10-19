@@ -11,7 +11,7 @@ class GedungController extends Controller
 {
     private function authorizeSuperAdmin()
     {
-        abort_unless(Auth::user()->isSuperAdmin(), 403, 'Hanya Super Admin yang bisa mengelola gedung.');
+        abort_unless(Auth::user()->isSuperAdmin(), 403, 'Hanya Super Admin yang bisa mengelola unit.');
     }
 
     public function index()
@@ -26,8 +26,8 @@ class GedungController extends Controller
         $this->authorizeSuperAdmin();
         $request->validate(['nama_gedung' => 'required|string|max:255', 'lokasi' => 'nullable|string|max:255']);
         Gedung::create($request->only(['nama_gedung', 'lokasi']));
-        LogAktivitas::catat('Tambah Gedung', "Gedung {$request->nama_gedung} ditambahkan.");
-        return back()->with('success', 'Gedung berhasil ditambahkan.');
+        LogAktivitas::catat('Tambah Unit', "Unit {$request->nama_gedung} ditambahkan.");
+        return back()->with('success', 'Unit berhasil ditambahkan.');
     }
 
     public function edit(string $id)
@@ -43,8 +43,8 @@ class GedungController extends Controller
         $gedung = Gedung::findOrFail($id);
         $request->validate(['nama_gedung' => 'required|string|max:255', 'lokasi' => 'nullable|string|max:255']);
         $gedung->update($request->only(['nama_gedung', 'lokasi']));
-        LogAktivitas::catat('Ubah Gedung', "Gedung {$gedung->nama_gedung} diperbarui.");
-        return redirect()->route('gedung.index')->with('success', 'Gedung berhasil diperbarui.');
+        LogAktivitas::catat('Ubah Unit', "Unit {$gedung->nama_gedung} diperbarui.");
+        return redirect()->route('gedung.index')->with('success', 'Unit berhasil diperbarui.');
     }
 
     public function destroy(string $id)
@@ -52,10 +52,10 @@ class GedungController extends Controller
         $this->authorizeSuperAdmin();
         $gedung = Gedung::withCount(['ruangans', 'users'])->findOrFail($id);
         if ($gedung->ruangans_count > 0 || $gedung->users_count > 0) {
-            return back()->with('error', "Gagal! {$gedung->nama_gedung} masih dipakai {$gedung->ruangans_count} ruangan / {$gedung->users_count} pengguna. Kosongkan dulu.");
+            return back()->with('error', "Gagal! {$gedung->nama_gedung} masih dipakai {$gedung->ruangans_count} lab / {$gedung->users_count} pengguna. Kosongkan dulu.");
         }
         $gedung->delete();
-        LogAktivitas::catat('Hapus Gedung', "Gedung {$gedung->nama_gedung} dihapus.");
-        return back()->with('success', 'Gedung berhasil dihapus.');
+        LogAktivitas::catat('Hapus Unit', "Unit {$gedung->nama_gedung} dihapus.");
+        return back()->with('success', 'Unit berhasil dihapus.');
     }
 }

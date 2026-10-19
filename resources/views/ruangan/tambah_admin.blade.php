@@ -5,7 +5,7 @@
 @section('activeMenu', 'ruangan')
 
 @section('breadcrumbs')
-    <a href="{{ route('ruangan.index') }}" class="hover:text-blue-700 transition-colors font-medium">Kelola Ruangan</a>
+    <a href="{{ route('ruangan.index') }}" class="hover:text-blue-700 transition-colors font-medium">Kelola Lab</a>
     <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block shrink-0"></i>
     <span class="text-slate-700 font-medium truncate">Tambah Admin</span>
 @endsection
@@ -16,14 +16,14 @@
         @if($ruangan->isEmpty())
             <div class="bg-white border border-slate-200 rounded-xl shadow-sm px-6 py-16 text-center">
                 <i data-lucide="user-check" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
-                <p class="text-slate-500">Semua ruangan sudah punya admin.</p>
-                <a href="{{ route('ruangan.index') }}" class="inline-block mt-4 text-sm font-semibold text-blue-700 hover:text-blue-900">Kembali ke daftar ruangan</a>
+                <p class="text-slate-500">Semua lab sudah punya admin.</p>
+                <a href="{{ route('ruangan.index') }}" class="inline-block mt-4 text-sm font-semibold text-blue-700 hover:text-blue-900">Kembali ke daftar lab</a>
             </div>
         @else
             <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm flex items-start">
                 <i data-lucide="info" class="w-5 h-5 mt-0.5 mr-2 shrink-0 text-blue-600"></i>
                 <span>
-                    <strong>{{ $ruangan->count() }} ruangan</strong> belum punya admin. Segera tugaskan Laboran agar operasional berjalan — Super Admin hanya memantau.
+                    <strong>{{ $ruangan->count() }} lab</strong> belum punya admin. Segera tugaskan Laboran agar operasional berjalan — Super Admin hanya memantau.
                     Isi nama, email, dan password-nya, lalu simpan sekali jalan. Baris yang dikosongkan akan dilewati.
                 </span>
             </div>
@@ -50,7 +50,7 @@
                         <table class="w-full text-sm text-left text-slate-600">
                             <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
                                 <tr>
-                                    <th class="px-6 py-4 font-semibold tracking-wider">Ruangan</th>
+                                    <th class="px-6 py-4 font-semibold tracking-wider">Lab</th>
                                     <th class="px-6 py-4 font-semibold tracking-wider">Nama Lengkap</th>
                                     <th class="px-6 py-4 font-semibold tracking-wider">Email</th>
                                     <th class="px-6 py-4 font-semibold tracking-wider">Password</th>

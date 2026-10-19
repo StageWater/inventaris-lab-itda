@@ -9,12 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('log_aktivitases', function (Blueprint $table) {
-            // ponytail: snapshot nama/role/IP saat aksi terjadi; relasi user tetap
-            // sumber kebenaran akun, kolom ini hanya untuk audit yang tak berubah
-            // walau user dihapus/diubah (user_id nullOnDelete).
-            $table->string('nama_user')->nullable()->after('user_id');
-            $table->string('role_user')->nullable()->after('nama_user');
-            $table->string('ip_address', 45)->nullable()->after('deskripsi');
+            // ponytail: kolom bisa sudah ada kalau DB pernah di-migrate versi create
+            // yang menyertakannya; guard agar migrate tidak dobel.
+            if (! Schema::hasColumn('log_aktivitases', 'nama_user')) {
+                $table->string('nama_user')->nullable()->after('user_id');
+                $table->string('role_user')->nullable()->after('nama_user');
+                $table->string('ip_address', 45)->nullable()->after('deskripsi');
+            }
         });
 
         // Backfill agar riwayat lama tetap tampil nama + role.

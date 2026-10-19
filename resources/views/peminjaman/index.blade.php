@@ -21,9 +21,9 @@
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 mb-6">
         <form method="GET" action="{{ route('peminjaman.index') }}" class="flex flex-col sm:flex-row sm:items-end gap-3">
             <div class="sm:w-72">
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Filter Ruangan</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Filter Lab</label>
                 <select name="ruangan_id" onchange="this.form.submit()" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
-                    <option value="">-- Semua Ruangan --</option>
+                    <option value="">-- Semua Lab --</option>
                     @foreach($ruangan as $ruang)
                         <option value="{{ $ruang->id }}" {{ request('ruangan_id') == $ruang->id ? 'selected' : '' }}>{{ $ruang->nama_ruangan }}</option>
                     @endforeach
@@ -73,11 +73,10 @@
                         <th class="px-6 py-4 font-semibold tracking-wider">NIM</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Barang Dipinjam</th>
                         @if(Auth::user()->ruangan_id === null)
-                        <th class="px-6 py-4 font-semibold tracking-wider">Ruangan</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Lab</th>
                         @endif
                         <th class="px-6 py-4 font-semibold tracking-wider">Tanggal Pinjam</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Tgl. Pengembalian</th>
-                        <th class="px-6 py-4 font-semibold tracking-wider">Berkas</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Status</th>
                         @if(!auth()->user()->isSuperAdmin())
                         <th class="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
@@ -95,15 +94,6 @@
                         @endif
 <td class="px-6 py-4 text-slate-500 whitespace-nowrap">{{ \Carbon\Carbon::parse($pinjam->tanggal_pinjam)->format('d M Y') }}</td>
                         <td class="px-6 py-4 text-slate-500 whitespace-nowrap">{{ $pinjam->tanggal_pengembalian ? \Carbon\Carbon::parse($pinjam->tanggal_pengembalian)->format('d M Y') : '-' }}</td>
-                        <td class="px-6 py-4 text-slate-500">
-                            @if($pinjam->berkas)
-                                <a href="{{ asset('storage/' . $pinjam->berkas) }}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
-                                    <i data-lucide="file-text" class="w-4 h-4 mr-1"></i> Lihat Berkas
-                                </a>
-                            @else
-                                -
-                            @endif
-                        </td>
                         <td class="px-6 py-4 text-center">
                             @if($pinjam->status_pinjam == 'Dipinjam')
                                 @if($pinjam->terlambat)

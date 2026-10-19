@@ -28,7 +28,7 @@
                     <tr>
                         <th class="px-6 py-4 font-semibold tracking-wider">NIM</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Nama</th>
-                        <th class="px-6 py-4 font-semibold tracking-wider">Jurusan</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Prodi</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Judul Skripsi</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Nomor Surat</th>
                         <th class="px-6 py-4 font-semibold tracking-wider">Diajukan</th>

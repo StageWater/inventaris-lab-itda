@@ -34,9 +34,9 @@ class UserController extends Controller
             return null;
         }
 
-        $nama = Ruangan::find($ruanganIdLama)?->nama_ruangan ?? 'Ruangan tersebut';
+        $nama = Ruangan::find($ruanganIdLama)?->nama_ruangan ?? 'Lab tersebut';
 
-        return "Gagal! {$nama} tidak punya admin lain. Tunjuk admin untuk ruangan itu terlebih dahulu.";
+        return "Gagal! {$nama} tidak punya admin lain. Tunjuk admin untuk lab itu terlebih dahulu.";
     }
 
     public function index(Request $request)
@@ -91,7 +91,17 @@ class UserController extends Controller
         $role = $request->role ?: ($request->ruangan_id ? 'Laboran' : 'Super Admin');
         if ($me->isAdminGedung()) {
             $role = 'Laboran';
+            if (! $request->ruangan_id) {
+                return back()->withErrors(['ruangan_id' => 'Pilih lab di unit Anda.'])->withInput();
+            }
             abort_unless(in_array($request->ruangan_id, $me->ruanganIds()), 403);
+        }
+        // Akun tanpa scope = 403 di semua halaman setelah login (RoleScopeBoundary).
+        if ($role === 'Kepala Unit' && ! $request->gedung_id) {
+            return back()->withErrors(['gedung_id' => 'Pilih unit untuk peran Kepala Unit.'])->withInput();
+        }
+        if ($role === 'Laboran' && ! $request->ruangan_id) {
+            return back()->withErrors(['ruangan_id' => 'Pilih lab untuk peran Laboran, atau ubah perannya.'])->withInput();
         }
         // Kepala Unit / Super Admin tak pakai ruangan; buang kiriman ruangan agar tak jadi data mati.
         $ruanganId = $role === 'Laboran' ? ($request->ruangan_id ?: null) : null;
@@ -176,6 +186,15 @@ class UserController extends Controller
         } elseif ($ruanganBaru) {
             $data['role'] = 'Laboran';
         }
+
+        // Akun tanpa scope = 403 di semua halaman setelah login (RoleScopeBoundary).
+        $roleAkhir = $data['role'] ?? $user->role;
+        if ($roleAkhir === 'Kepala Unit' && ! $data['gedung_id']) {
+            return back()->withErrors(['gedung_id' => 'Pilih unit untuk peran Kepala Unit.'])->withInput();
+        }
+        if ($roleAkhir === 'Laboran' && ! $data['ruangan_id']) {
+            return back()->withErrors(['ruangan_id' => 'Pilih lab untuk peran Laboran, atau ubah perannya.'])->withInput();
+        }
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
@@ -195,7 +214,7 @@ class UserController extends Controller
             return back()->with('error', 'Tidak dapat menghapus akun yang sedang digunakan.');
         }
         // ponytail: tanpa ini Super Admin terakhir bisa dihapus dan menu
-        // Kelola Gedung/Pengguna tak bisa dibuka siapa pun lagi.
+        // Kelola Unit/Pengguna tak bisa dibuka siapa pun lagi.
         if ($user->isSuperAdmin() && !User::where('role', 'Super Admin')->where('id', '!=', $user->id)->exists()) {
             return back()->with('error', 'Gagal! Ini Super Admin terakhir. Tunjuk super admin lain sebelum menghapusnya.');
         }

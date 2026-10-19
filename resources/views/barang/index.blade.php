@@ -38,7 +38,7 @@
             @if(! auth()->user()->isAdminRuangan())
             <div class="sm:w-56">
                 <select name="ruangan_id" onchange="this.form.submit()" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
-                    <option value="">-- Semua Ruangan --</option>
+                    <option value="">-- Semua Lab --</option>
                     @foreach($ruanganOptions as $ruang)
                         <option value="{{ $ruang->id }}" {{ request('ruangan_id') == $ruang->id ? 'selected' : '' }}>{{ $ruang->nama_ruangan }}</option>
                     @endforeach
@@ -53,11 +53,11 @@
         </div>
     </form>
 
-    @if(request('status') || request('rusak'))
+    @if(request('status') || request('kondisi') || request('rusak'))
         <div class="mb-4 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-center justify-between gap-3">
             <span class="flex items-center">
                 <i data-lucide="filter" class="w-4 h-4 mr-2 shrink-0"></i>
-                Menampilkan barang berstatus <strong class="ml-1">{{ request('status') ?? 'Rusak (perlu perbaikan)' }}</strong>
+                Menampilkan barang {{ request('kondisi') ? 'berkondisi' : 'berstatus' }} <strong class="ml-1">{{ request('status') ?? request('kondisi') ?? 'Rusak (perlu perbaikan)' }}</strong>
             </span>
             <a href="{{ route('barang.index', ['katakunci' => request('katakunci')]) }}" class="shrink-0 text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline">
                 Hapus filter
@@ -66,14 +66,20 @@
     @endif
 
     <div class="flex flex-wrap items-center gap-2 mb-4">
-        @foreach(['Tersedia', 'Dipinjam', 'Maintenance'] as $st)
+        @foreach(['Tersedia', 'Dipinjam'] as $st)
             <a href="{{ route('barang.index', array_filter(['status' => $st, 'katakunci' => request('katakunci')])) }}"
                 class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors {{ request('status') === $st ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-700' }}">
                 {{ $st }}
             </a>
         @endforeach
+        @foreach(['Baik', 'Rusak Ringan', 'Rusak Berat'] as $kd)
+            <a href="{{ route('barang.index', array_filter(['kondisi' => $kd, 'katakunci' => request('katakunci')])) }}"
+                class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors {{ request('kondisi') === $kd ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-700' }}">
+                {{ $kd }}
+            </a>
+        @endforeach
         <a href="{{ route('barang.index', array_filter(['katakunci' => request('katakunci')])) }}"
-            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors {{ !request('status') ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-700' }}">
+            class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors {{ !request('status') && !request('kondisi') && !request('rusak') ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-700' }}">
             Semua
         </a>
     </div>
@@ -95,7 +101,7 @@
                         <th class="px-6 py-4 font-semibold tracking-wider">Nama Barang</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">QR</th>
                         @if(! auth()->user()->isAdminRuangan())
-                        <th class="px-6 py-4 font-semibold tracking-wider">Ruangan</th>
+                        <th class="px-6 py-4 font-semibold tracking-wider">Lab</th>
                         @endif
                         <th class="px-6 py-4 font-semibold tracking-wider">Kondisi</th>
                         <th class="px-6 py-4 font-semibold tracking-wider text-center">Status</th>
@@ -120,7 +126,7 @@
                             @endif
                         </td>
                         @if(! auth()->user()->isAdminRuangan())
-                        <td class="px-6 py-4 text-slate-500">{{ $item->ruangan->nama_ruangan ?? 'Ruang ' . $item->ruangan_id }}</td>
+                        <td class="px-6 py-4 text-slate-500">{{ $item->ruangan->nama_ruangan ?? 'Lab ' . $item->ruangan_id }}</td>
                         @endif
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $item->kondisi === 'Baik' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200' }}">
@@ -195,7 +201,7 @@
                     @if(! auth()->user()->isAdminRuangan())
                     <span>
                         <i data-lucide="door-open" class="w-3.5 h-3.5 inline-block text-slate-400 mr-1"></i>
-                        {{ $item->ruangan->nama_ruangan ?? 'Ruang ' . $item->ruangan_id }}
+                        {{ $item->ruangan->nama_ruangan ?? 'Lab ' . $item->ruangan_id }}
                     </span>
                     @endif
                     <span>

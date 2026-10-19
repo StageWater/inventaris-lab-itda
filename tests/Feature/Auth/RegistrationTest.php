@@ -10,7 +10,7 @@ class RegistrationTest extends TestCase
     use RefreshDatabase;
 
     // /register sengaja dihapus: form publik dulu membuat akun Laboran
-    // untuk ruangan mana pun tanpa verifikasi email. Akun admin lab sekarang
+    // untuk lab mana pun tanpa verifikasi email. Akun admin lab sekarang
     // hanya dibuat Super Admin lewat UserController::store.
     public function test_halaman_pendaftaran_tidak_lagi_ada(): void
     {

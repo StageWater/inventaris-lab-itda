@@ -11,6 +11,7 @@ class PermohonanSurat extends Model
         'nama',
         'jurusan',
         'judul_skripsi',
+        'tanggal_yudisium',
         'nomor_surat',
         'status',
     ];

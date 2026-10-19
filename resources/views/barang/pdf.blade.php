@@ -25,7 +25,7 @@
                 <th>No</th>
                 <th>Kode Barang</th>
                 <th>Nama Barang</th>
-                <th>Ruangan</th>
+                <th>Lab</th>
                 <th>Kategori</th>
                 <th>Kondisi</th>
                 <th>Status</th>

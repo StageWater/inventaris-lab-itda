@@ -41,7 +41,7 @@
                     <span class="font-semibold text-slate-800">{{ $surat->nim }}</span>
                 </div>
                 <div class="flex justify-between gap-4">
-                    <span class="text-slate-500">Jurusan</span>
+                    <span class="text-slate-500">Prodi</span>
                     <span class="font-semibold text-slate-800 text-right">{{ $surat->jurusan }}</span>
                 </div>
                 <div class="flex justify-between gap-4">

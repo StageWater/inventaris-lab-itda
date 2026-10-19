@@ -79,29 +79,29 @@
     {{-- Ringkasan scope RBAC --}}
     @if(Auth::user()->isSuperAdmin())
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Gedung</p><p class="text-2xl font-bold text-slate-900">{{ $total_gedung ?? 0 }}</p></div>
-        <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Ruangan</p><p class="text-2xl font-bold text-slate-900">{{ $total_ruangan ?? 0 }}</p></div>
+        <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Unit</p><p class="text-2xl font-bold text-slate-900">{{ $total_gedung ?? 0 }}</p></div>
+        <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Lab</p><p class="text-2xl font-bold text-slate-900">{{ $total_ruangan ?? 0 }}</p></div>
         <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Peminjaman Aktif</p><p class="text-2xl font-bold text-orange-600">{{ $peminjaman_aktif ?? 0 }}</p></div>
     </div>
     @elseif(Auth::user()->isAdminGedung())
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Ruangan</p><p class="text-2xl font-bold text-slate-900">{{ $total_ruangan ?? 0 }}</p></div>
+        <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Lab</p><p class="text-2xl font-bold text-slate-900">{{ $total_ruangan ?? 0 }}</p></div>
         <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Barang</p><p class="text-2xl font-bold text-slate-900">{{ $total_barang ?? 0 }}</p></div>
         <div class="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-4"><p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Peminjaman Aktif</p><p class="text-2xl font-bold text-orange-600">{{ $peminjaman_aktif ?? 0 }}</p></div>
     </div>
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50"><h3 class="text-sm font-bold text-slate-800">Akumulasi Barang per Ruangan</h3></div>
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50"><h3 class="text-sm font-bold text-slate-800">Akumulasi Barang per Lab</h3></div>
         <div class="divide-y divide-slate-100">
             @forelse($perRuangan ?? [] as $r)
             <div class="flex items-center justify-between px-6 py-3"><span class="text-sm text-slate-700">{{ $r->nama_ruangan }}</span><span class="text-sm font-bold text-slate-900">{{ $r->barangs_count }} barang</span></div>
             @empty
-            <div class="px-6 py-8 text-center text-slate-400 text-sm">Belum ada ruangan di gedung ini.</div>
+            <div class="px-6 py-8 text-center text-slate-400 text-sm">Belum ada lab di unit ini.</div>
             @endforelse
         </div>
     </div>
     @else
     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 rounded-xl border border-blue-200 bg-blue-50/60 px-5 py-3.5 text-sm text-slate-700">
-        <span class="font-semibold text-blue-900">{{ Auth::user()->ruangan->nama_ruangan ?? 'Ruangan Saya' }}</span>
+        <span class="font-semibold text-blue-900">{{ Auth::user()->ruangan->nama_ruangan ?? 'Lab Saya' }}</span>
         <span class="hidden sm:inline text-slate-300">|</span>
         <span>Ada <strong class="text-blue-800">{{ $permohonan_pending ?? 0 }} surat</strong> menunggu dicetak sistem</span>
     </div>

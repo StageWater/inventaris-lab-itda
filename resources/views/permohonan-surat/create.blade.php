@@ -40,9 +40,14 @@
         </div>
 
         <div>
-            <label for="jurusan" class="block text-sm font-medium text-slate-700 mb-1">Jurusan</label>
-            <input id="jurusan" type="text" name="jurusan" value="{{ old('jurusan') }}" required maxlength="255" placeholder="Contoh: TEKNIK INDUSTRI"
-                class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400 uppercase">
+            <label for="jurusan" class="block text-sm font-medium text-slate-700 mb-1">Prodi</label>
+            <select id="jurusan" name="jurusan" required
+                class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 bg-white">
+                <option value="" disabled selected>-- Pilih Prodi --</option>
+                @foreach(['S1 TEKNIK DIRGANTARA', 'S1 TEKNIK MESIN', 'D3 AERONAUTIKA', 'S1 TEKNIK INDUSTRI', 'S1 INFORMATIKA', 'S1 TEKNIK ELEKTRO'] as $p)
+                    <option value="{{ $p }}" {{ old('jurusan') === $p ? 'selected' : '' }}>{{ $p }}</option>
+                @endforeach
+            </select>
             @error('jurusan')
                 <p class="mt-1.5 text-sm text-rose-600">{{ $message }}</p>
             @enderror
@@ -57,14 +62,19 @@
             @enderror
         </div>
 
+        <div>
+            <label for="tanggal_yudisium" class="block text-sm font-medium text-slate-700 mb-1">Tanggal Yudisium</label>
+            <input id="tanggal_yudisium" type="date" name="tanggal_yudisium" value="{{ old('tanggal_yudisium') }}" required
+                class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700">
+            <p class="mt-1.5 text-xs text-slate-500">Tanggal, bulan, dan tahun yudisium Anda. Tanggal ini yang ditulis di surat bebas lab.</p>
+            @error('tanggal_yudisium')
+                <p class="mt-1.5 text-sm text-rose-600">{{ $message }}</p>
+            @enderror
+        </div>
+
         <button type="submit"
             class="w-full px-5 py-2.5 text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
             <i data-lucide="send"></i> Kirim Pengajuan
         </button>
     </form>
-
-    <p class="mt-6 text-center text-sm text-slate-500">
-        Sudah pernah mengajukan?
-        <a href="{{ route('permohonan.publik.cek') }}" class="text-blue-700 hover:text-blue-900 font-medium">Cek status dan unduh surat di sini</a>
-    </p>
 </x-guest-layout>

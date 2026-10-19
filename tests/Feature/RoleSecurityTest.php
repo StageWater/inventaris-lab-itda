@@ -146,7 +146,7 @@ class RoleSecurityTest extends TestCase
 
         $this->assertDatabaseHas('log_aktivitases', [
             'aksi' => 'Tambah Pengguna',
-            'deskripsi' => 'Admin untuk ruangan Lab 6 ditambahkan.',
+            'deskripsi' => 'Admin untuk lab Lab 6 ditambahkan.',
         ]);
     }
 

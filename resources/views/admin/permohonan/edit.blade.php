@@ -48,7 +48,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Jurusan</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Prodi</label>
                     <input type="text" name="jurusan" value="{{ old('jurusan', $surat->jurusan) }}" required maxlength="255"
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 uppercase">
                     @error('jurusan')

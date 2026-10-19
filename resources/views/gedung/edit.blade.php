@@ -1,22 +1,22 @@
 @extends('layouts.app_simalab')
 
-@section('title', 'Edit Gedung | SIMALAB ITDA')
-@section('header', 'Kelola Gedung')
+@section('title', 'Edit Unit | SIMALAB ITDA')
+@section('header', 'Kelola Unit')
 @section('activeMenu', 'gedung')
 
 @section('content')
-<a href="{{ route('gedung.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6">Kembali ke Kelola Gedung</a>
+<a href="{{ route('gedung.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6">Kembali ke Kelola Unit</a>
 <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl">
     <form action="{{ route('gedung.update', $gedung->id) }}" method="POST" class="p-6 space-y-5">
         @csrf
         @method('PUT')
         <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Gedung</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Unit</label>
             <input type="text" name="nama_gedung" value="{{ old('nama_gedung', $gedung->nama_gedung) }}" required
                 class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-700">
         </div>
         <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">Lokasi (Opsional)</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Gedung (Opsional)</label>
             <input type="text" name="lokasi" value="{{ old('lokasi', $gedung->lokasi) }}"
                 class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-700">
         </div>

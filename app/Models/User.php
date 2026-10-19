@@ -77,7 +77,7 @@ class User extends Authenticatable
 
     // ponytail: null = semua ruangan (Super Admin). Array kosong = tak ada akses.
     // Guard gedung_id null: where('gedung_id', null) ikut cocok ke SEMUA ruangan
-    // tanpa gedung (IS NULL) = eskalasi diam-diam jadi global. Tolak langsung.
+    // tanpa unit (IS NULL) = eskalasi diam-diam jadi global. Tolak langsung.
     public function ruanganIds(): ?array
     {
         if ($this->isSuperAdmin()) {

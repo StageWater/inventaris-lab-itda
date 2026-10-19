@@ -1,23 +1,23 @@
 @extends('layouts.app_simalab')
 
-@section('title', 'Tambah Ruangan | SIMALAB ITDA')
-@section('header', 'Kelola Ruangan')
+@section('title', 'Tambah Lab | SIMALAB ITDA')
+@section('header', 'Kelola Lab')
 @section('activeMenu', 'ruangan')
 
 @section('breadcrumbs')
-<a href="{{ route('ruangan.index') }}" class="hover:text-blue-700 transition-colors font-medium">Kelola Ruangan</a>
+<a href="{{ route('ruangan.index') }}" class="hover:text-blue-700 transition-colors font-medium">Kelola Lab</a>
 <i data-lucide="chevron-right" class="w-3 h-3 mx-1 inline-block"></i>
 <span class="text-slate-700 font-medium">Tambah</span>
 @endsection
 
 @section('content')
     <a href="{{ route('ruangan.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-blue-700 mb-6 transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Kelola Ruangan
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Kembali ke Kelola Lab
     </a>
 
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden max-w-2xl">
         <div class="p-6 border-b border-slate-200 bg-slate-50/50">
-            <h2 class="text-xl font-bold text-blue-950">Tambah Ruangan Baru</h2>
+            <h2 class="text-xl font-bold text-blue-950">Tambah Lab Baru</h2>
             <p class="text-sm text-slate-500 mt-1">Daftarkan lokasi laboratorium baru ke dalam sistem.</p>
         </div>
 
@@ -34,20 +34,20 @@
                 @csrf
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Kode Ruangan</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Kode Lab</label>
                     <input type="text" name="kode_ruangan" value="{{ old('kode_ruangan') }}" required placeholder="Contoh: RPL-01"
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Ruangan</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lab</label>
                     <input type="text" name="nama_ruangan" value="{{ old('nama_ruangan') }}" required placeholder="Contoh: Lab Komputer A"
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">
                 </div>
                 @if(Auth::user()->isSuperAdmin())
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Gedung</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Unit</label>
                     <select name="gedung_id" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-700 bg-white">
-                        <option value="">Tanpa gedung</option>
+                        <option value="">Tanpa unit</option>
                         @foreach($gedung as $g)
                             <option value="{{ $g->id }}" {{ old('gedung_id') == $g->id ? 'selected' : '' }}>{{ $g->nama_gedung }}</option>
                         @endforeach
@@ -56,7 +56,7 @@
                 @endif
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Keterangan (Opsional)</label>
-                    <textarea name="keterangan" rows="3" placeholder="Deskripsi singkat ruangan"
+                    <textarea name="keterangan" rows="3" placeholder="Deskripsi singkat lab"
                         class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-700 placeholder-slate-400">{{ old('keterangan') }}</textarea>
                 </div>
 

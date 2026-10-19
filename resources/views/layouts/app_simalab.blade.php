@@ -115,16 +115,16 @@
             </a>
 
             @if($canKelola)
-            <a href="{{ route('ruangan.index') }}" title="Kelola Ruangan" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'ruangan' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="door-open" class="w-4 h-4 mr-3 {{ $activeMenu === 'ruangan' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Kelola Ruangan</span>
+            <a href="{{ route('ruangan.index') }}" title="Kelola Lab" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'ruangan' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="door-open" class="w-4 h-4 mr-3 {{ $activeMenu === 'ruangan' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Kelola Lab</span>
             </a>
             <a href="{{ route('users.index') }}" title="Kelola Pengguna" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'users' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
                 <i data-lucide="users" class="w-4 h-4 mr-3 {{ $activeMenu === 'users' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Kelola Pengguna</span>
             </a>
             @endif
             @if($isSuperAdmin)
-            <a href="{{ route('gedung.index') }}" title="Kelola Gedung" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'gedung' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
-                <i data-lucide="building-2" class="w-4 h-4 mr-3 {{ $activeMenu === 'gedung' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Kelola Gedung</span>
+            <a href="{{ route('gedung.index') }}" title="Kelola Unit" class="flex items-center px-3 py-2 text-sm font-medium {{ $activeMenu === 'gedung' ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700 rounded-l-md font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700 rounded-md' }} transition-colors">
+                <i data-lucide="building-2" class="w-4 h-4 mr-3 {{ $activeMenu === 'gedung' ? 'text-blue-700' : 'text-slate-400' }}"></i> <span class="sidebar-label">Kelola Unit</span>
             </a>
             @endif
 
